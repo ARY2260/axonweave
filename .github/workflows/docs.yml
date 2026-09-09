@@ -38,6 +38,19 @@ jobs:
           test -f dist/404.html
           test -f dist/sitemap.xml
           echo "docs build artifacts verified"
+      - name: Verify sitemap covers every route
+        working-directory: docs-site
+        run: |
+          node -e "
+            const fs = require('fs');
+            const sitemap = fs.readFileSync('dist/sitemap.xml', 'utf8');
+            const slugs = [...fs.readFileSync('src/main.tsx', 'utf8').matchAll(/\\{slug:'([^']+)'/g)].map(m => m[1]);
+            const missing = slugs.filter(s => !sitemap.includes('axonweave/' + (s === 'index' ? '' : s)));
+            if (missing.length) { console.error('sitemap missing:', missing); process.exit(1); }
+            const dupes = slugs.filter((s, i) => slugs.indexOf(s) !== i);
+            if (dupes.length) { console.error('duplicate slugs in registry:', dupes); process.exit(1); }
+            console.log('sitemap covers ' + slugs.length + ' routes; no duplicates');
+          "
       - name: Configure Pages (enables Pages if not yet enabled)
         uses: actions/configure-pages@v5
         with:

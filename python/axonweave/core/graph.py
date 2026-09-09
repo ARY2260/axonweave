@@ -27,6 +27,12 @@ class ConnectomeGraph:
         a, b = self.weights.indptr[i:i+2]
         return self.body_ids[self.weights.indices[a:b]], self.weights.data[a:b]
 
+    @property
+    def neurons(self):
+        """NeuronSelector bound to this graph (body-ID / mask / annotation queries)."""
+        from .selection import NeuronSelector
+        return NeuronSelector(self)
+
     def save(self, path):
         m = self.weights
         np.savez_compressed(path, data=m.data, indices=m.indices, indptr=m.indptr,
