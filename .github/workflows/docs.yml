@@ -1,0 +1,32 @@
+name: Documentation
+on:
+  push:
+    branches: [main]
+    paths: ['docs-site/**','docs/**']
+  pull_request:
+    paths: ['docs-site/**','docs/**']
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - working-directory: docs-site
+        run: npm install
+      - name: Typecheck
+        working-directory: docs-site
+        run: npm run typecheck
+      - name: Lint DESIGN.md design tokens
+        working-directory: docs-site
+        run: npm run design:lint
+      - name: Build production site
+        working-directory: docs-site
+        run: npm run build
+      - name: Verify build artifacts
+        working-directory: docs-site
+        run: |
+          test -f dist/index.html
+          test -f dist/404.html
+          test -f dist/sitemap.xml
+          echo "docs build artifacts verified"

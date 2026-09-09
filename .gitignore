@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Build/package
+build/
+dist/
+*.egg-info/
+*.whl
+*.tar.gz
+*.so
+*.pyd
+
+# Rust
+rust/target/
+Cargo.lock
+
+# Node/docs
+node_modules/
+docs-site/dist/
+.vite/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# AxonWeave local biological data and caches
+.axonweave/
+.axonweave-cache/
+axonweave-cache/
+*.feather
+*.npz
+*.awb
+*.part
+
+# Agent scratch/output
+.agent/
+.agents/
+.agent-work/
+.ai/
+.ai-work/
+.codex/
+.claude/
+.cursor/
+.gemini/
+.tmp/
+/tmp/
+*.prompt.md
+*_agent_output.*
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Coverage/build reports
+coverage.xml
+junit.xml

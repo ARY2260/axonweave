@@ -1,0 +1,16 @@
+name: Rust and PyO3
+on: [push, pull_request]
+jobs:
+  rust:
+    strategy:
+      matrix: {os: [ubuntu-latest, macos-latest, windows-latest]}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --manifest-path rust/Cargo.toml
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --out dist
+          manylinux: auto

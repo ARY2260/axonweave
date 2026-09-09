@@ -1,0 +1,89 @@
+/*
+ * AxonWeave docs design tokens — generated from DESIGN.md.
+ * Regenerate with: npx -p @google/design.md designmd export --format css-tailwind DESIGN.md > src/tokens.css
+ * The Tailwind `@theme` at the bottom is kept for Tailwind consumers; the :root
+ * blocks below map the same tokens onto the CSS custom properties used by style.css.
+ */
+:root {
+  color-scheme: dark;
+  --bg: #10151b;
+  --surface: #151c23;
+  --surface-2: #1b242d;
+  --text: #e7edf2;
+  --muted: #aeb8c2;
+  --line: #2a343e;
+  --accent: #8dc4d8;
+  --accent-strong: #b7e2ef;
+  --code: #0b1015;
+  --shadow: 0 10px 30px rgba(0,0,0,.2);
+  --font-sans: system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono: ui-monospace,'Cascadia Mono',Consolas,Menlo,monospace;
+}
+:root[data-theme=light] {
+  color-scheme: light;
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --surface-2: #eef1f3;
+  --text: #172027;
+  --muted: #55616b;
+  --line: #d9dfe4;
+  --accent: #17677e;
+  --accent-strong: #0f5266;
+  --code: #f0f3f5;
+  --shadow: 0 10px 25px rgba(22,34,42,.08);
+}
+@theme {
+  --color-primary: #b7e2ef;
+  --color-bg: #10151b;
+  --color-surface: #151c23;
+  --color-surface-2: #1b242d;
+  --color-text: #e7edf2;
+  --color-muted: #aeb8c2;
+  --color-line: #2a343e;
+  --color-accent: #8dc4d8;
+  --color-accent-strong: #b7e2ef;
+  --color-code: #0b1015;
+  --color-on-primary: #10151b;
+  --color-light-bg: #f6f7f8;
+  --color-light-surface: #ffffff;
+  --color-light-surface-2: #eef1f3;
+  --color-light-text: #172027;
+  --color-light-muted: #55616b;
+  --color-light-line: #d9dfe4;
+  --color-light-accent: #17677e;
+  --color-light-accent-strong: #0f5266;
+  --color-light-code: #f0f3f5;
+  --font-h1: system-ui;
+  --font-h2: system-ui;
+  --font-h3: system-ui;
+  --font-body-md: system-ui;
+  --font-body-sm: system-ui;
+  --font-label-caps: system-ui;
+  --font-code: ui-monospace;
+  --text-h1: 44px;
+  --text-h2: 27px;
+  --text-h3: 20px;
+  --text-body-md: 16px;
+  --text-body-sm: 14px;
+  --text-label-caps: 11px;
+  --text-code: 13px;
+  --leading-h1: 1.1;
+  --leading-h2: 1.2;
+  --leading-body-md: 1.65;
+  --tracking-h1: -0.04em;
+  --tracking-h2: -0.025em;
+  --tracking-label-caps: 0.1em;
+  --font-weight-h1: 700;
+  --font-weight-h2: 700;
+  --font-weight-h3: 600;
+  --font-weight-label-caps: 700;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 18px;
+  --spacing-lg: 28px;
+  --spacing-xl: 48px;
+  --spacing-gutter: 28px;
+}

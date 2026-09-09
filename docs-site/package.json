@@ -1,0 +1,31 @@
+{
+  "name": "axonweave-docs",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "design:lint": "designmd lint DESIGN.md",
+    "check": "tsc -b && vite build",
+    "postbuild": "cp dist/index.html dist/404.html"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "dompurify": "latest",
+    "lucide-react": "latest",
+    "marked": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-helmet-async": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@google/design.md": "^0.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7"
+  }
+}

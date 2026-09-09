@@ -1,0 +1,1 @@
+The MaleCNS v1.0 biological data remain under their upstream CC-BY terms. This file does not relicense upstream data. Consult DATA_SOURCES.md and the official release for exact attribution requirements.
