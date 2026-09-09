@@ -25,7 +25,8 @@ class ActionDecoder:
     def __call__(self, activity, n_source: int | None = None) -> np.ndarray:
         a = np.asarray(activity, dtype=np.float32)
         if a.shape[-1] < self.actions:
-            raise ValueError(
+            from ..errors import ApiUsageError
+            raise ApiUsageError(
                 f"AXW010: decoder needs at least {self.actions} readout neurons, got {a.shape[-1]}"
             )
         vals = a[..., :self.actions]

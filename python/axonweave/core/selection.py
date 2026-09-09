@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..errors import AxonWeaveError
+from ..errors import ApiUsageError
 
 
 @dataclass(frozen=True)
@@ -55,7 +55,7 @@ class NeuronSelector:
         try:
             indices = np.asarray([self.graph.index(int(b)) for b in ids], dtype=np.int64)
         except KeyError:
-            raise AxonWeaveError(
+            raise ApiUsageError(
                 "AXW010: selection contains body IDs not present in the substrate"
             ) from None
         return NeuronSelection(self.graph, indices, ids)
@@ -75,7 +75,7 @@ class NeuronSelector:
         """Select by boolean mask over graph order."""
         m = np.asarray(mask, dtype=bool)
         if m.shape != (self.graph.n_neurons,):
-            raise ValueError(
+            raise ApiUsageError(
                 f"AXW010: mask length {m.shape[0]} != n_neurons {self.graph.n_neurons}")
         return NeuronSelection(
             self.graph,
@@ -94,14 +94,14 @@ class NeuronSelector:
     def _by_annotation(self, key: str, value: str):
         tables = getattr(self.graph, "selection_tables", None)
         if not tables or key not in tables:
-            raise AxonWeaveError(
+            raise ApiUsageError(
                 f"AXW010: by_{key}() requires substrate selection tables; "
                 "reinstall the substrate so annotations are built "
                 "(axonweave substrate install male-cns:v1.0)"
             )
         table = tables[key]
         if value not in table:
-            raise AxonWeaveError(
+            raise ApiUsageError(
                 f"AXW010: unknown {key} {value!r}; "
                 f"known values: {sorted(table)[:20]}{' ...' if len(table) > 20 else ''}"
             )

@@ -21,7 +21,7 @@ from axonweave.data.checksums import (
 )
 from axonweave.data.installer import _sha256, install_male_cns
 from axonweave.data.manifest import MALE_CNS
-from axonweave.errors import DatasetIntegrityError, SubstrateNotInstalledError
+from axonweave.errors import DatasetIntegrityError, SchemaError, SubstrateNotInstalledError
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +142,7 @@ def test_build_graph_unresolvable_schema_raises(tmp_path):
     table = pa.table({"a": pa.array([1], pa.int64())})
     p = tmp_path / "bad.feather"
     feather.write_feather(table, p)
-    with pytest.raises(ValueError, match="AXW003"):
+    with pytest.raises(SchemaError, match="AXW003"):
         build_graph(p, tmp_path / "g.npz")
 
 

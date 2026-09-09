@@ -1,13 +1,14 @@
 import numpy as np
 
 from ..core.selection import NeuronSelection
+from ..errors import ApiUsageError
 
 
 class ConnectomeLayer:
     def __init__(self, graph, trainable_edges=False, gain=1.0, selection=None):
         if selection is not None:
             if not isinstance(selection, NeuronSelection):
-                raise ValueError(
+                raise ApiUsageError(
                     "AXW010: selection must be a NeuronSelection from brain.graph.neurons")
             self.graph_weights = selection.weights()
             self.selection_body_ids = selection.body_ids.copy()
@@ -20,6 +21,11 @@ class ConnectomeLayer:
 
     def __call__(self, x):
         x = np.asarray(x)
+        n = self.graph_weights.shape[0]
+        if x.shape[-1] != n:
+            from ..errors import ApiUsageError
+            raise ApiUsageError(
+                f"AXW010: expected last dimension {n}, got {x.shape[-1]}")
         m = self.graph_weights
         if self.edge_weight is not None:
             m = m.copy()

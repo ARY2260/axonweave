@@ -30,12 +30,14 @@ def brain_task(brain, input=None, output=None, dynamics="rate", selection=None, 
         if input is not None:
             size = getattr(input, "n_target", None) or getattr(input, "size", None)
             if size is None:
-                raise ValueError("AXW010: input encoder must expose n_target")
+                from .errors import ApiUsageError
+                raise ApiUsageError("AXW010: input encoder must expose n_target")
             model.connect(Input(int(size)))
         if output is not None:
             size = getattr(output, "vocab_size", None) or getattr(output, "actions", None)
             if size is None:
-                raise ValueError("AXW010: output decoder must expose vocab_size or actions")
+                from .errors import ApiUsageError
+                raise ApiUsageError("AXW010: output decoder must expose vocab_size or actions")
             model.connect(Readout(int(size)))
         model._task_encoder = input
         model._task_decoder = output

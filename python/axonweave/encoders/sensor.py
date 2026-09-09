@@ -18,7 +18,8 @@ class SensorEncoder:
     def __call__(self, obs) -> np.ndarray:
         x = np.asarray(obs, dtype=np.float32)
         if x.shape[-1] != self.n_sensors:
-            raise ValueError(
+            from ..errors import ApiUsageError
+            raise ApiUsageError(
                 f"AXW010: expected last dimension {self.n_sensors}, got {x.shape[-1]}"
             )
         max_ = np.abs(x).max(axis=-1, keepdims=True)

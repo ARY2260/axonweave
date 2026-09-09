@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from ...dynamics import LIF, AdaptiveLIF, Rate, DynamicsModel
+from ...errors import ApiUsageError
 from ...torch.layer import ConnectomeLayer
 from ...core.selection import NeuronSelection
 
@@ -29,7 +30,7 @@ def resolve_dynamics(dynamics: str | DynamicsModel | None) -> DynamicsModel:
     try:
         return DYNAMICS[dynamics]()
     except KeyError:
-        raise ValueError(
+        raise ApiUsageError(
             f"AXW010: unknown dynamics {dynamics!r}; known: {sorted(DYNAMICS)}"
         ) from None
 
@@ -69,7 +70,7 @@ class ConnectomeBlock(nn.Module):
 
     def forward(self, x):
         if x.shape[-1] != self.n_active:
-            raise ValueError(
+            raise ApiUsageError(
                 f"AXW010: expected last dimension {self.n_active}, got {x.shape[-1]}"
             )
         np_x = x.detach().cpu().numpy()
@@ -130,7 +131,7 @@ class BrainModel(nn.Module):
         elif isinstance(module, Readout):
             self.readout = nn.Linear(self._io_size, module.size)
         else:
-            raise ValueError("AXW010: connect() accepts Input or Readout instances")
+            raise ApiUsageError("AXW010: connect() accepts Input or Readout instances")
         return self
 
     def forward(self, x):
@@ -144,14 +145,15 @@ class BrainModel(nn.Module):
     def fit(self, loader, epochs: int = 1, lr: float = 1e-3, optimizer=None):
         """Standard supervised loop over (x, y) batches from a DataLoader/iterator."""
         if self.readout is None:
-            raise ValueError("AXW010: BrainModel.fit requires a Readout via connect()")
+            raise ApiUsageError("AXW010: BrainModel.fit requires a Readout via connect()")
         params = [p for p in self.parameters() if p.requires_grad]
         if not params:
-            raise ValueError(
+            raise ApiUsageError(
                 "AXW010: nothing to train — the substrate is frozen and no interfaces "
                 "were connected. Use connect(Input(...)) / connect(Readout(...)) or "
                 "trainable_edges=True."
             )
+
         opt = optimizer or torch.optim.Adam(params, lr=lr)
         self.train()
         history = []

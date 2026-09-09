@@ -28,7 +28,8 @@ def _resolve(names, candidates, label):
     for c in candidates:
         if c in names:
             return c
-    raise ValueError(f"AXW003: could not resolve {label}; available columns={sorted(names)}")
+    from ..errors import SchemaError
+    raise SchemaError(f"AXW003: could not resolve {label}; available columns={sorted(names)}")
 
 def build_graph(feather_path, output_path, batch_size=100_000):
     """Build a sparse graph from a Feather dataset.

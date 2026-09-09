@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch import nn
-from ..errors import UnsupportedDeviceError
+from ..errors import ApiUsageError, UnsupportedDeviceError
 from ..core.selection import NeuronSelection
 
 
@@ -37,7 +37,7 @@ class ConnectomeLayer(nn.Module):
 
     def forward(self, x):
         if x.shape[-1] != self.n_neurons:
-            raise ValueError(f"AXW010: expected last dimension {self.n_neurons}, got {x.shape[-1]}")
+            raise ApiUsageError(f"AXW010: expected last dimension {self.n_neurons}, got {x.shape[-1]}")
         w = torch.sparse_coo_tensor(self.edge_index, self.edge_weight,
                                     (self.n_neurons, self.n_neurons), device=x.device).coalesce()
         y = torch.sparse.mm(w.transpose(0, 1), x.transpose(-1, -2)).transpose(-1, -2)

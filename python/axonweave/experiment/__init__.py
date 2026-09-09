@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from ..dynamics import DynamicsModel
-from ..errors import AxonWeaveError
+from ..errors import ApiUsageError
 from ..learning import LEARNING_RULES
 from ..signals import SignalPolicy
 
@@ -52,7 +52,7 @@ class Agent:
         self.rule = None
         if learning is not None:
             if learning not in LEARNING_RULES:
-                raise ValueError(f"AXW010: unknown learning rule {learning!r}; known: {sorted(LEARNING_RULES)}")
+                raise ApiUsageError(f"AXW010: unknown learning rule {learning!r}; known: {sorted(LEARNING_RULES)}")
             self.rule = LEARNING_RULES[learning]()
         self.signal_policy = signal_policy or SignalPolicy()
         self.dt = dt
@@ -75,7 +75,7 @@ class Agent:
     # -- core loop ----------------------------------------------------------
     def _encode(self, observation) -> np.ndarray:
         if self.encoder is None:
-            raise AxonWeaveError("AXW010: no encoder configured; call agent.sense(encoder)")
+            raise ApiUsageError("AXW010: no encoder configured; call agent.sense(encoder)")
         return np.asarray(self.encoder(observation), dtype=np.float32)
 
     def _brain_step(self, currents: np.ndarray) -> np.ndarray:
@@ -87,7 +87,7 @@ class Agent:
 
     def _decode(self, activity: np.ndarray):
         if self.decoder is None:
-            raise AxonWeaveError("AXW010: no decoder configured; call agent.act(decoder)")
+            raise ApiUsageError("AXW010: no decoder configured; call agent.act(decoder)")
         return self.decoder(activity)
 
     def step(self, observation, environment) -> StepResult:
@@ -263,5 +263,5 @@ def _resolve_dynamics(name: str) -> DynamicsModel:
 
     table = {"lif": LIF, "adaptive_lif": AdaptiveLIF, "rate": Rate}
     if name not in table:
-        raise ValueError(f"AXW010: unknown dynamics {name!r}; known: {sorted(table)}")
+        raise ApiUsageError(f"AXW010: unknown dynamics {name!r}; known: {sorted(table)}")
     return table[name]()

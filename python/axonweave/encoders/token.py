@@ -25,7 +25,8 @@ class TokenEncoder:
     def __call__(self, token_ids) -> np.ndarray:
         ids = np.asarray(token_ids, dtype=np.int64)
         if ids.min(initial=0) < 0 or ids.max(initial=0) >= self.vocab_size:
-            raise ValueError(
+            from ..errors import ApiUsageError
+            raise ApiUsageError(
                 f"AXW010: token ids must be in [0, {self.vocab_size}); "
                 f"got range [{ids.min()}, {ids.max()}]"
             )
