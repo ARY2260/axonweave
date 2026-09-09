@@ -18,8 +18,6 @@ def brain_task(brain, input=None, output=None, dynamics="rate", **kwargs):
                 "AXW006: brain.task requires PyTorch; install axonweave[torch]"
             ) from e
     from .frameworks.torch import BrainModel
-    from .encoders import ImageEncoder, SensorEncoder, TokenEncoder
-    from .decoders import ActionDecoder, TokenDecoder, ClassificationHead
 
     model = BrainModel(brain, dynamics=dynamics, **kwargs)
     if input is not None or output is not None:

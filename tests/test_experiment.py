@@ -8,7 +8,7 @@ import pytest
 from axonweave.core.brain import BiologicalBrain
 from axonweave.decoders import ActionDecoder
 from axonweave.encoders import SensorEncoder
-from axonweave.errors import BackendUnavailableError
+from axonweave.errors import BackendUnavailableError, DatasetIntegrityError
 from axonweave.experiment import Agent, RunResult
 from tests.conftest import make_graph
 
@@ -36,6 +36,38 @@ def brain():
     return BiologicalBrain(make_graph(8, 3))
 
 
+def test_checkpoint_rejects_incompatible_substrate(brain, tmp_path):
+    agent = _agent(brain)
+    agent.sense(SensorEncoder(4, brain.n_neurons)).act(ActionDecoder(brain.n_neurons, 2))
+    p = tmp_path / "run.awb-ckpt"
+    agent.save_checkpoint(str(p))
+    # A different graph must be refused (fingerprint mismatch -> AXW002).
+    other_brain = BiologicalBrain(make_graph(12, 5))
+    with pytest.raises(DatasetIntegrityError, match="AXW002"):
+        Agent.load_checkpoint(str(p), other_brain)
+
+
+def test_brain_info_and_capabilities(brain):
+    info = brain.info()
+    assert info.n_neurons == brain.n_neurons
+    assert info.n_edges == brain.graph.n_edges
+    assert info.substrate_id == "male-cns:v1.0"
+    assert len(info.fingerprint) == 64
+    assert "Substrate" in info.summary()
+    caps = brain.capabilities()
+    assert caps["n_neurons"] == brain.n_neurons
+    assert "torch" in caps["backends"]
+    assert "rate" in caps["dynamics"]
+
+
+def test_fingerprint_is_stable_and_content_sensitive():
+    from axonweave.core.brain import substrate_fingerprint
+    g1 = make_graph(8, 3)
+    g2 = make_graph(8, 3)
+    assert substrate_fingerprint(g1) == substrate_fingerprint(g2)
+    assert substrate_fingerprint(g1) != substrate_fingerprint(make_graph(8, 4))
+
+
 def _agent(brain, **kw):
     return brain.agent(
         input=SensorEncoder(4, 8, seed=1),
@@ -56,7 +88,6 @@ def test_agent_run_basic(brain):
 def test_agent_loop_order(brain):
     """observation -> encoder -> brain -> decoder -> action -> env -> reward."""
     seen = {}
-    enc = SensorEncoder(4, 8, seed=1)
 
     class ProbeEncoder(SensorEncoder):
         def __call__(self, obs):
@@ -82,7 +113,7 @@ def test_unknown_learning_rule_rejected(brain):
 
 def test_stdp_learning_updates_working_weights_not_substrate(brain):
     before = brain.graph.weights.data.copy()
-    agent = _agent(brain, dynamics="lif", learning="stdp")
+    agent = _agent(brain, dynamics="rate", learning="stdp")
     agent.run(RecorderEnv(), episodes=1, max_steps=5)
     assert agent._working_weights is not None
     assert not np.array_equal(agent._working_weights.data, before)
@@ -101,7 +132,7 @@ def test_jsonl_logging(brain, tmp_path):
     agent = _agent(brain)
     agent.run(RecorderEnv(), episodes=2, max_steps=5, log_dir=str(log_dir))
     lines = (log_dir / "log.jsonl").read_text(encoding="utf-8").strip().splitlines()
-    records = [json.loads(l) for l in lines]
+    records = [json.loads(line) for line in lines]
     assert any(r.get("event") == "episode_end" for r in records)
     assert all(isinstance(r, dict) for r in records)
 
@@ -111,13 +142,15 @@ def test_checkpoint_roundtrip(brain, tmp_path):
     agent = _agent(brain, dynamics="lif", learning="stdp")
     agent.run(RecorderEnv(), episodes=1, max_steps=5)
     agent.save_checkpoint(ck)
-    assert os.path.exists(ck)
+    # np.savez_compressed appends '.npz' to the archive path.
+    assert os.path.exists(ck + ".npz")
     meta_files = [f for f in os.listdir(tmp_path) if f.endswith(".json")]
     assert meta_files
     meta = json.loads((tmp_path / meta_files[0]).read_text(encoding="utf-8"))
     assert meta["dynamics"] == "lif"
     assert meta["learning"] == "STDP"
     assert meta["substrate"] == "male-cns:v1.0"
+    assert meta["graph_fingerprint"] == brain.fingerprint
     restored = Agent.load_checkpoint(ck, brain)
     assert restored.dynamics.name == "lif"
     assert restored.rule is not None
@@ -147,5 +180,5 @@ def test_dynamics_lif_used_in_agent(brain):
     agent = _agent(brain, dynamics="lif")
     agent._dyn_state = agent.dynamics.initial_state(brain.n_neurons)
     currents = np.full((1, 8), 100.0, dtype=np.float32)
-    activity, _ = agent._brain_step(currents)
+    activity = agent._brain_step(currents)
     assert set(np.unique(activity)).issubset({0.0, 1.0})

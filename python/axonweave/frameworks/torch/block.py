@@ -10,7 +10,6 @@ import torch
 from torch import nn
 
 from ...dynamics import LIF, AdaptiveLIF, Rate, DynamicsModel
-from ...errors import BackendUnavailableError
 from ...torch.layer import ConnectomeLayer
 
 

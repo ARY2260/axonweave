@@ -34,22 +34,27 @@ class STDP:
         """
         decay_pre = np.exp(-dt / self.tau_pre)
         decay_post = np.exp(-dt / self.tau_post)
+        # Pairwise STDP traces computed BEFORE incorporating the current step.
+        pre_trace_prev = state["pre"].copy()
         state["pre"] = state["pre"] * decay_pre + pre_activity
         state["post"] = state["post"] * decay_post + post_activity
 
-        # LTP: pre-active synapses onto post-active neurons strengthen.
-        # LTD: synapses onto post-active neurons weaken when pre trace lags.
-        ltp = self.a_plus * np.outer(post_activity, state["pre"])
-        ltd = self.a_minus * np.outer(post_activity, state["pre"] * 0)  # pairwise handled below
+        # LTP: pre trace (recent pre-activity) x current post activity.
+        # LTD: current pre activity x post trace (recent post-activity).
+        ltp = self.a_plus * np.outer(post_activity, pre_trace_prev)
+        ltd = self.a_minus * np.outer(state["post"], pre_activity)
         delta = ltp - ltd
 
         if W is not None and W.nnz:
             rows = np.repeat(np.arange(W.shape[0]), np.diff(W.indptr))
             cols = W.indices
             d = delta[rows, cols]
-            data = W.data + d
+            # Three-factor semantics: an explicit reward signal gates the
+            # update (reward-modulated); ``None`` means plain pairwise STDP.
             if reward is not None:
                 data = W.data + reward * d
+            else:
+                data = W.data + d
             if self.w_min is not None:
                 data = np.maximum(data, self.w_min)
             if self.w_max is not None:

@@ -42,6 +42,7 @@ import trainingMd from '../content/training.md?raw';
 import checkpointsMd from '../content/checkpoints.md?raw';
 import devicesMd from '../content/devices.md?raw';
 import faqMd from '../content/faq.md?raw';
+import limitationsMd from '../content/limitations.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
@@ -69,6 +70,7 @@ const pages: Page[] = [
  {slug:'api-reference',label:'API Reference',source:apiMd,section:'Reference'},
  {slug:'biology',label:'Biological Model',source:biologyMd,section:'Science'},
  {slug:'scientific-reference',label:'Scientific Reference',source:scientificMd,section:'Science'},
+ {slug:'limitations',label:'Scientific Limitations',source:limitationsMd,section:'Science'},
  {slug:'interoperability',label:'Interoperability',source:interoperabilityMd,section:'Science'},
  {slug:'architecture',label:'Architecture',source:architectureMd,section:'Development'},
  {slug:'release-engineering',label:'Release Process',source:releaseMd,section:'Development'},
@@ -86,6 +88,12 @@ const normalize = (md:string) => md
  .replace(/^:::DOC-WARN\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-warn"><p class="callout-title">Constraint</p>\n${body}\n</div>`)
  .replace(/^:::DOC-TIP\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-tip"><p class="callout-title">Tip</p>\n${body}\n</div>`);
 const render = (md:string) => DOMPurify.sanitize(marked.parse(normalize(md)) as string, {ADD_ATTR:['target','rel','class']});
+// Documentation links are written relative to the content directory (e.g.
+// `dynamics.md`); rewrite them to clean, extension-less SPA routes.
+const rewriteDocLinks = (html:string) => html.replace(
+  /href="([A-Za-z0-9_-]+)\.md(#[^"]*)?"/g,
+  (_m, slug:string, hash:string) => `href="${BASE_PREFIX}/${slug}${hash ?? ''}"`,
+);
 const BASE = import.meta.env.BASE_URL;
 const BASE_PREFIX = BASE.endsWith('/') ? BASE.slice(0,-1) : BASE;
 const hrefFor = (slug:string) => `${BASE}${slug==='index'?'':slug}`;
@@ -142,7 +150,8 @@ function App(){
    addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);
  },[]);
  const page=pages.find(p=>p.slug===slug);
- const html=useMemo(()=>page?render(page.source):'', [page]);
+ const html=useMemo(()=>page?rewriteDocLinks(render(page.source)):'', [page]);
+
  useEffect(()=>{document.title=page?`${page.label} · AxonWeave`: 'Page not found · AxonWeave'; const domain=import.meta.env.VITE_ANALYTICS_DOMAIN as string|undefined; if(domain && !document.querySelector('script[data-axonweave-analytics]')){const script=document.createElement('script');script.defer=true;script.dataset.domain=domain;script.dataset.axonweaveAnalytics='true';script.src=`https://plausible.io/js/script.js`;document.head.appendChild(script)}},[page]);
  const sections=[...new Set(pages.map(p=>p.section))];
  const navigate=(s:string)=>{history.pushState({},'',hrefFor(s));setSlug(s);setMobile(false);scrollTo(0,0)};
@@ -168,7 +177,7 @@ function App(){
       {sections.map(section=><div className="nav-section" key={section}><div className="nav-label">{section}</div>{pages.filter(p=>p.section===section).map(p=><a key={p.slug} className={slug===p.slug?'active':''} href={hrefFor(p.slug)} onClick={e=>{e.preventDefault();navigate(p.slug)}}>{p.label}</a>)}</div>)}
     </aside>
     <main id="main" className="content">
-      {page?<><div className="breadcrumbs">Docs <span>/</span> {page.label}</div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer/><div className="page-nav"><span>AxonWeave Documentation</span><button className="text-button" onClick={()=>navigate('getting-started')}>Continue →</button></div></>:<NotFound navigate={navigate}/>}
+      {page?<><div className="breadcrumbs">Docs <span>/</span> {page.label}</div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
     </main>
     {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc/></aside>}
    </div>
@@ -197,6 +206,18 @@ function Toc(){
  return <nav>{items.map(x=><a className={(x.level===3?'sub ':'')+(active===x.id?'active':'')} href={`#${x.id}`} key={x.id}><ChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
 }
 function NotFound({navigate}:{navigate:(s:string)=>void}){return <div className="not-found"><p className="eyebrow">404</p><h1>Page not found</h1><p>The requested documentation page does not exist.</p><button className="primary" onClick={()=>navigate('index')}>Return to documentation</button></div>}
+function PageNav({slug,navigate}:{slug:string,navigate:(s:string)=>void}){
+ // Previous/next footer navigation across the sidebar page order.
+ const order=pages.map(p=>p.slug);
+ const idx=order.indexOf(slug);
+ if(idx===-1)return null;
+ const prev=idx>0?pages[idx-1]:null;
+ const next=idx<order.length-1?pages[idx+1]:null;
+ return <div className="page-nav">
+  {prev? <button className="page-nav-cell prev" onClick={()=>navigate(prev.slug)}><span className="page-nav-dir">← Previous</span><span className="page-nav-label">{prev.label}</span></button> : <span className="page-nav-cell"/>}
+  {next? <button className="page-nav-cell next" onClick={()=>navigate(next.slug)}><span className="page-nav-dir">Next →</span><span className="page-nav-label">{next.label}</span></button> : <span className="page-nav-cell"/>}
+ </div>;
+}
 function SearchDialog({pages,onClose,onGo}:{pages:Page[],onClose:()=>void,onGo:(s:string)=>void}){const [q,setQ]=useState('');const results=pages.filter(p=>(p.label+' '+p.source).toLowerCase().includes(q.toLowerCase())).slice(0,8);return <div className="overlay" onMouseDown={onClose}><div className="search-dialog" onMouseDown={e=>e.stopPropagation()}><div className="search-head"><Search size={18}/><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="Search documentation"/><button className="icon-button" onClick={onClose}><X size={18}/></button></div>{results.map(r=><button className="search-result" key={r.slug} onClick={()=>{onGo(r.slug);onClose()}}><strong>{r.label}</strong><span>{r.section}</span></button>)}</div></div>}
 function CookieConsent(){const [show,setShow]=useState(localStorage.getItem('axonweave-cookie')!=='accepted');if(!show)return null;return <div className="cookie"><div><strong>Privacy choices</strong><p>This documentation does not require analytics cookies. Optional analytics, if enabled by a deployment, should be disclosed in the Privacy Policy.</p></div><button className="primary" onClick={()=>{localStorage.setItem('axonweave-cookie','accepted');setShow(false)}}>Accept</button></div>}
 

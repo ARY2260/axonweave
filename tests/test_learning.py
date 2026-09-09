@@ -31,12 +31,12 @@ def test_stdp_changes_existing_edges_only():
     W0 = sparse.eye(3, dtype=np.float32, format="csr")
     rule = STDP(a_plus=0.1, a_minus=0.0)
     traces = rule.initial_traces(3)
-    pre = np.ones(3, dtype=np.float32)
-    post = np.ones(3, dtype=np.float32)
-    rule.update(W0, traces, pre, post, dt=1.0)
+    # Pre fires first, then post fires -> potentiation of active synapses.
+    rule.update(W0, traces, np.ones(3, dtype=np.float32), np.zeros(3, dtype=np.float32), dt=1.0)
+    rule.update(W0, traces, np.zeros(3, dtype=np.float32), np.ones(3, dtype=np.float32), dt=1.0)
     dense = W0.toarray()
     assert (dense[0, 1] == 0) and (dense[0, 2] == 0)  # no new edges created
-    assert dense[0, 0] != 1.0 or dense[1, 1] != 1.0   # existing edges moved
+    assert dense[0, 0] > 1.0   # existing edge potentiated (LTP)
 
 
 def test_stdp_weight_clipping():
@@ -54,11 +54,13 @@ def test_reward_modulated_scales_update():
     Wa = sparse.eye(2, dtype=np.float32, format="csr")
     Wb = sparse.eye(2, dtype=np.float32, format="csr")
     ta, tb = rule_a.initial_traces(2), rule_b.initial_traces(2)
-    pre = post = np.ones(2, dtype=np.float32)
+    pre, post = np.ones(2, dtype=np.float32), np.zeros(2, dtype=np.float32)
     rule_a.update(Wa, ta, pre, post, dt=1.0, reward=1.0)
     rule_b.update(Wb, tb, pre, post, dt=1.0, reward=1.0)
+    rule_a.update(Wa, ta, np.zeros(2, dtype=np.float32), np.ones(2, dtype=np.float32), dt=1.0, reward=1.0)
+    rule_b.update(Wb, tb, np.zeros(2, dtype=np.float32), np.ones(2, dtype=np.float32), dt=1.0, reward=1.0)
     assert not np.allclose(Wa.data, np.ones(2))     # reward applied
-    np.testing.assert_allclose(Wb.data, np.ones(2))  # zero gain = no change
+    assert np.allclose(Wb.data, np.ones(2))         # zero gain = no change
 
 
 def test_plasticity_does_not_touch_original_graph():

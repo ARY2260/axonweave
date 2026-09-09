@@ -55,8 +55,8 @@ class LIF(DynamicsModel):
 
         t = state["t"] + self.dt
         can_spike = state["refrac_until"] <= t
-        # Synaptic input through the sparse connectome.
-        synaptic = input_current + (input_current @ W if W is not None else 0)
+        # Synaptic input through the sparse connectome (pre -> post, W is [pre, post]).
+        synaptic = input_current @ W if W is not None else 0
         dv = (-(state["v"] - self.v_rest) + synaptic) * (self.dt / self.tau)
         v = np.where(can_spike, state["v"] + dv, state["v"])
         spiked = can_spike & (v >= self.v_threshold)
@@ -91,7 +91,7 @@ class AdaptiveLIF(LIF):
 
         t = state["t"] + self.dt
         can_spike = state["refrac_until"] <= t
-        synaptic = input_current + (input_current @ W if W is not None else 0)
+        synaptic = input_current @ W if W is not None else 0
         dv = (-(state["v"] - self.v_rest) + synaptic) * (self.dt / self.tau)
         v = np.where(can_spike, state["v"] + dv, state["v"])
         spiked = can_spike & (v >= state["threshold"])
@@ -122,7 +122,8 @@ class Rate(DynamicsModel):
         return {"t": 0.0}
 
     def step(self, state, input_current, W):
-        synaptic = input_current + (input_current @ W if W is not None else 0)
+        # Activity propagates along directed edges: pre -> post (x @ W).
+        synaptic = input_current @ W if W is not None else input_current
         activity = self.baseline + self.gain * synaptic
         return activity, {"t": state["t"] + self.dt}
 

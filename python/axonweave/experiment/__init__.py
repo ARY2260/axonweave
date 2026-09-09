@@ -13,8 +13,6 @@ from pathlib import Path
 import numpy as np
 
 from ..dynamics import DynamicsModel
-from ..encoders import ImageEncoder, SensorEncoder, TokenEncoder
-from ..decoders import ActionDecoder, TokenDecoder
 from ..errors import AxonWeaveError
 from ..learning import LEARNING_RULES
 from ..signals import SignalPolicy
@@ -115,7 +113,6 @@ class Agent:
             observation = getattr(result, "observation", None)
         if self.rule is not None and self._working_weights is None:
             # Copy-on-write: plasticity never mutates the cached substrate graph.
-            import scipy.sparse as sp
             self._working_weights = self.brain.graph.weights.copy()
         if self.rule is not None and self._working_weights is not None:
             if self._plastic_traces is None:
@@ -181,6 +178,7 @@ class Agent:
     # -- checkpointing (AXW-CKPT contract) ------------------------------------
     def save_checkpoint(self, path: str):
         import axonweave
+        from ..core.brain import substrate_fingerprint
 
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -192,6 +190,8 @@ class Agent:
         meta = {
             "axonweave_version": axonweave.__version__ if hasattr(axonweave, "__version__") else "0.1.0",
             "substrate": getattr(self.brain, "substrate_id", "male-cns:v1.0"),
+            "graph_fingerprint": substrate_fingerprint(self.brain.graph),
+            "n_neurons": int(self.brain.n_neurons),
             "dynamics": getattr(self.dynamics, "name", str(self.dynamics)),
             "learning": type(self.rule).__name__ if self.rule else None,
             "encoder": type(self.encoder).__name__ if self.encoder else None,
@@ -203,6 +203,9 @@ class Agent:
 
     @classmethod
     def load_checkpoint(cls, path: str, brain):
+        from ..core.brain import substrate_fingerprint
+        from ..errors import DatasetIntegrityError
+
         p = Path(path)
         meta = json.loads(p.with_suffix(".json").read_text(encoding="utf-8"))
         # save_checkpoint passes a '.awb-ckpt' path to np.savez_compressed,
@@ -213,8 +216,15 @@ class Agent:
             zpath = p.with_suffix(p.suffix + ".npz")
         else:
             raise FileNotFoundError(f"checkpoint archive for {p} not found")
+        # Substrate identity guard: a trained model must not be loaded against
+        # an incompatible connectome (AXW-CKPT contract).
+        ckpt_fp = meta.get("graph_fingerprint")
+        if ckpt_fp is not None and ckpt_fp != substrate_fingerprint(brain.graph):
+            raise DatasetIntegrityError(
+                "AXW002: checkpoint graph fingerprint does not match the loaded "
+                "substrate; refusing to restore against an incompatible connectome"
+            )
         z = np.load(zpath, allow_pickle=False)
-        zpath_handle = z
         import scipy.sparse as sp
         W = sp.csr_matrix((z["weights_data"], z["weights_indices"], z["weights_indptr"]),
                           shape=tuple(z["weights_shape"]))

@@ -1,6 +1,59 @@
 from __future__ import annotations
+
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
+
+import numpy as np
+
+
+SUBSTRATE_ID = "male-cns:v1.0"
+
+
+def substrate_fingerprint(graph) -> str:
+    """Stable identity hash of a loaded connectome (weights + body IDs).
+
+    Deterministic for identical graph content regardless of matrix
+    canonicalization order of duplicate entries.
+    """
+    m = graph.weights.tocsr()
+    m.sum_duplicates()
+    m = m.sorted_indices()
+    h = hashlib.sha256()
+    h.update(np.asarray(m.shape, dtype=np.int64).tobytes())
+    h.update(np.ascontiguousarray(graph.body_ids, dtype=np.int64).tobytes())
+    h.update(np.ascontiguousarray(m.indptr, dtype=np.int64).tobytes())
+    h.update(np.ascontiguousarray(m.indices, dtype=np.int64).tobytes())
+    h.update(np.ascontiguousarray(m.data, dtype=np.float32).tobytes())
+    return h.hexdigest()
+
+
+@dataclass
+class BrainInfo:
+    """Summary of a loaded substrate (identity, size, attachments)."""
+
+    substrate_id: str
+    fingerprint: str
+    n_neurons: int
+    n_edges: int
+    has_annotations: bool
+    has_neurotransmitters: bool
+    has_receptors: bool
+    native_backend: str
+
+    def summary(self) -> str:
+        lines = [
+            f"Substrate:   {self.substrate_id}",
+            f"Fingerprint: {self.fingerprint[:16]}...",
+            f"Neurons:     {self.n_neurons:,}",
+            f"Connections: {self.n_edges:,}",
+            f"Annotations: {'yes' if self.has_annotations else 'no'}"
+            f"  Neurotransmitters: {'yes' if self.has_neurotransmitters else 'no'}"
+            f"  Receptors: {'yes' if self.has_receptors else 'no'}",
+            f"Native core: {self.native_backend}",
+        ]
+        return "\n".join(lines)
+
 
 @dataclass
 class BiologicalBrain:
@@ -12,6 +65,50 @@ class BiologicalBrain:
     @property
     def n_neurons(self):
         return self.graph.n_neurons
+
+    @property
+    def substrate_id(self) -> str:
+        return SUBSTRATE_ID
+
+    @property
+    def fingerprint(self) -> str:
+        return substrate_fingerprint(self.graph)
+
+    def info(self) -> BrainInfo:
+        import axonweave as _ax
+        return BrainInfo(
+            substrate_id=self.substrate_id,
+            fingerprint=self.fingerprint,
+            n_neurons=self.graph.n_neurons,
+            n_edges=self.graph.n_edges,
+            has_annotations=self.annotations is not None,
+            has_neurotransmitters=self.neurotransmitters is not None,
+            has_receptors=self.receptors is not None,
+            native_backend=_ax.native_version(),
+        )
+
+    def capabilities(self) -> dict:
+        """Machine-readable capability map of this brain instance."""
+        return {
+            "substrate_id": self.substrate_id,
+            "fingerprint": self.fingerprint,
+            "n_neurons": self.graph.n_neurons,
+            "n_edges": self.graph.n_edges,
+            "backends": {
+                "numpy": True,
+                "torch": True,
+                "keras": True,
+            },
+            "facades": ["layer", "torch_layer", "keras_layer",
+                        "task", "agent", "simulate", "experiment"],
+            "dynamics": ["rate", "lif", "adaptive_lif"],
+            "learning": ["stdp", "dopamine_stdp"],
+            "attachments": {
+                "annotations": self.annotations is not None,
+                "neurotransmitters": self.neurotransmitters is not None,
+                "receptors": self.receptors is not None,
+            },
+        }
 
     def torch_layer(self, **kwargs):
         from ..torch import ConnectomeLayer

@@ -56,30 +56,33 @@ def test_lif_strong_input_spikes(W):
     assert y.sum() == 6  # every neuron spikes
 
 
-def test_lif_refractory_blocks_second_spike(W):
+def test_lif_refractory_blocks_second_spike():
     d = LIF(v_rest=-60.0, v_threshold=-59.0, refractory=5.0, dt=1.0)
+    W2 = sparse.eye(2, dtype=np.float32, format="csr")
     s = d.initial_state(2)
     x = np.full(2, 50.0, dtype=np.float32)
-    y1, s = d.step(s, x, W)
-    y2, _ = d.step(s, x, W)  # inside refractory window
+    y1, s = d.step(s, x, W2)
+    y2, _ = d.step(s, x, W2)  # inside refractory window
     assert y1.sum() == 2
     assert y2.sum() == 0
 
 
-def test_lif_reset_after_spike(W):
+def test_lif_reset_after_spike():
     d = LIF(v_rest=-60.0, v_threshold=-59.0)
+    W1 = sparse.eye(1, dtype=np.float32, format="csr")
     s = d.initial_state(1)
-    y, s = d.step(s, np.full(1, 50.0, dtype=np.float32), W)
+    y, s = d.step(s, np.full(1, 50.0, dtype=np.float32), W1)
     assert y[0] == 1.0
     assert s["v"][0] == d.v_reset
 
 
-def test_adaptive_lif_threshold_increases(W):
+def test_adaptive_lif_threshold_increases():
     d = AdaptiveLIF(v_rest=-60.0, v_threshold=-59.0, tau_adapt=1000.0, delta_threshold=5.0)
+    W1 = sparse.eye(1, dtype=np.float32, format="csr")
     s = d.initial_state(1)
     x = np.full(1, 50.0, dtype=np.float32)
     base = d.v_threshold
-    y1, s = d.step(s, x, W)
+    y1, s = d.step(s, x, W1)
     assert s["threshold"][0] > base  # threshold jumped after spike
 
 
