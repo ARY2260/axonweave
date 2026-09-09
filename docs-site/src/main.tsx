@@ -7,6 +7,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-toml';
+import 'prismjs/components/prism-powershell';
 import { Menu, Moon, Sun, Search, X, ChevronRight } from 'lucide-react';
 import './style.css';
 
@@ -27,6 +28,7 @@ import privacyMd from '../content/privacy.md?raw';
 import termsMd from '../content/terms.md?raw';
 import examplesCustomPolicyMd from '../content/examples-custom-policy.md?raw';
 import examplesPytorchCompositionMd from '../content/examples-pytorch-composition.md?raw';
+import examplesSelectionMd from '../content/examples-selection.md?raw';
 import frameworkMd from '../content/framework.md?raw';
 import encodersMd from '../content/encoders.md?raw';
 import dynamicsMd from '../content/dynamics.md?raw';
@@ -62,6 +64,7 @@ const pages: Page[] = [
  {slug:'experiment',label:'Experiments & Agents',source:experimentMd,section:'Guides'},
  {slug:'checkpoints',label:'Checkpoints',source:checkpointsMd,section:'Guides'},
  {slug:'examples-pytorch-composition',label:'Custom Layer Composition',source:examplesPytorchCompositionMd,section:'Guides'},
+ {slug:'examples-selection',label:'Selection & Sub-Networks',source:examplesSelectionMd,section:'Guides'},
  {slug:'examples-custom-policy',label:'Custom Signal Policy',source:examplesCustomPolicyMd,section:'Guides'},
  {slug:'framework',label:'Framework API',source:frameworkMd,section:'Reference'},
  {slug:'backends',label:'Backends',source:backendsMd,section:'Reference'},
