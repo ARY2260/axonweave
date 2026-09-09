@@ -91,6 +91,7 @@ the authoritative validation environment:
 - [ ] Cross-backend equivalence tests requiring torch/tensorflow (`tests/test_cross_backend.py`).
 - [ ] Torch high-level API: `BrainModel`, `ConnectomeBlock` fit/composition/training-mode tests (`tests/test_torch_brain_model.py`).
 - [ ] `brain.task` happy path and `brain.layer` alias (torch-dependent).
+- [ ] Keras high-level adapter: `BrainLayer`, `KerasConnectomeBlock`, `brain.keras_task(...)` with 13 authored tests (`tests/test_keras_brain_layer.py`, tensorflow-dependent).
 - [ ] Rust/PyO3 build and tests on CI runners.
 - [ ] Wheel builds across the OS × Python matrix.
 - [ ] GitHub Pages deployment job (also blocked on repo visibility/Pages plan).
@@ -106,7 +107,7 @@ the authoritative validation environment:
 - [ ] Portable `.awb` substrate pack/unpack.
 - [ ] API-doc generation from Python docstrings.
 - [ ] Versioned documentation.
-- [ ] Keras high-level adapter; JAX adapter.
+- [ ] Keras high-level adapter (written, CI-verified pending — see WRITTEN section); JAX adapter.
 - [ ] Surrogate-gradient training through spiking dynamics.
 - [ ] Rust streaming graph builder; parallel construction; benchmark suite.
 - [ ] Configure GitHub OIDC trusted publishing on PyPI.
