@@ -85,11 +85,12 @@ low-level APIs remain unchanged.
 - [x] Experiment loop: `Agent` (encode → dynamics → decode → env → reward → plasticity), JSONL logging, checkpoints (`axonweave.experiment`).
 - [~] Brain facades: `brain.task(...)`, `brain.agent(...)`, `brain.layer(...)` alias, `brain.simulate`, `brain.experiment` (agent path locally verified; task path requires torch, CI-verified pending).
 - [~] Torch high-level adapters: `BrainModel`, `ConnectomeBlock`, `Input`, `Readout` (written + tests; CI-verified pending).
-- [ ] Neuron selection API (`brain.neurons`, `NeuronCollection`) — blocked on substrate annotations schema inspection.
-- [ ] `brain.info()` / `BrainInfo` structured metadata.
-- [ ] `axonweave.capabilities()` backend/device reporting.
+- [x] Neuron selection API (`brain.graph.neurons`: `all()`, `ids()`, `by_mask()`, `by_type()`, `by_region()`; order-preserving, AXW010 on unknown IDs; selection tables built from annotations at install time).
+- [x] Selections wired into all three `ConnectomeLayer` backends (`selection=` parameter: sub-network propagation, subset trainable edges, `selection_body_ids` provenance).
+- [x] `brain.info()` / `BrainInfo` structured metadata (incl. `summary()`).
+- [x] `brain.capabilities()` backend/device reporting.
+- [x] Checkpoint substrate-fingerprint validation (refuse mismatched graphs, AXW002).
 - [ ] First-class `axonweave.readout` package re-exports.
-- [ ] Checkpoint substrate-fingerprint validation (refuse mismatched graphs).
 - [ ] Keras high-level adapter (`axonweave.keras.BrainLayer`).
 - [ ] JAX high-level adapter.
 - [ ] Surrogate-gradient training through spiking dynamics.

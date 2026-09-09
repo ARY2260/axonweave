@@ -27,9 +27,20 @@ class SubstrateRegistry:
             raise DatasetIntegrityError("AXW002: substrate manifest identity/status mismatch")
         def optional(filename):
             return p / filename if (p / filename).exists() else None
-        return BiologicalBrain(
+        annotations_json = p / "annotations.json"
+        selection_tables = None
+        if annotations_json.exists():
+            try:
+                selection_tables = json.loads(annotations_json.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                selection_tables = None
+        brain = BiologicalBrain(
             ConnectomeGraph.load(graph),
             annotations=optional("annotations.feather"),
             neurotransmitters=optional("neurotransmitters.feather"),
             receptors=optional("receptors.json"),
         )
+        # Selection tables live on the graph so graph.neurons can resolve
+        # by_type()/by_region() without re-reading the Feather file.
+        brain.graph.selection_tables = selection_tables
+        return brain

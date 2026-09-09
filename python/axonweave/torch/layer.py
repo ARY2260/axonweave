@@ -2,14 +2,24 @@ import numpy as np
 import torch
 from torch import nn
 from ..errors import UnsupportedDeviceError
+from ..core.selection import NeuronSelection
 
 
 class ConnectomeLayer(nn.Module):
     def __init__(self, graph, trainable_edges=False, learnable_gain=False,
-                 bias=False, signal_policy=None, device=None):
+                 bias=False, signal_policy=None, device=None, selection=None):
         super().__init__()
-        self.n_neurons = graph.n_neurons
-        coo = graph.weights.tocoo()
+        if selection is not None:
+            if not isinstance(selection, NeuronSelection):
+                raise ValueError(
+                    "AXW010: selection must be a NeuronSelection from brain.graph.neurons")
+            sub = selection.weights()
+            self.selection_body_ids = selection.body_ids.copy()
+        else:
+            sub = graph.weights
+            self.selection_body_ids = None
+        self.n_neurons = sub.shape[0]
+        coo = sub.tocoo()
         self.register_buffer("edge_index", torch.tensor(np.vstack([coo.row, coo.col]), dtype=torch.long))
         values = torch.tensor(coo.data, dtype=torch.float32)
         if trainable_edges:

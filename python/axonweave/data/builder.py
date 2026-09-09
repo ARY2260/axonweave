@@ -14,6 +14,16 @@ ALIASES = {
     "weight": ("weight", "weights", "synapse_count", "count"),
 }
 
+# Annotation column aliases for neuron selection (by_type / by_region).
+# The MaleCNS body-annotations file publishes cell-type and side/region
+# information under these names; resolved with the same tolerant scheme as
+# the connectivity columns.
+ANNOTATION_ALIASES = {
+    "body": ("body_id", "bodyId", "body", "id"),
+    "type": ("cell_type", "type", "neuron_type", "class"),
+    "region": ("side", "region", "super_class", "roi", "hemisphere"),
+}
+
 def _resolve(names, candidates, label):
     for c in candidates:
         if c in names:
@@ -62,3 +72,42 @@ def build_graph(feather_path, output_path, batch_size=100_000):
     fingerprint = hashlib.sha256(matrix.data.tobytes() + matrix.indices.tobytes() + matrix.indptr.tobytes() + body_ids.tobytes()).hexdigest()
     Path(output_path).with_suffix('.json').write_text(json.dumps({"graph_fingerprint": fingerprint, "n_neurons": graph.n_neurons, "n_edges": graph.n_edges}, indent=2), encoding="utf-8")
     return graph
+
+
+def build_annotations(feather_path, output_path, batch_size=100_000):
+    """Extract selection tables (type / region -> body IDs) from the
+    annotations Feather file and write them as ``annotations.json``.
+
+    Missing columns degrade to absent keys rather than failing the install —
+    type/region selection then raises AXW010 with a clear message at query
+    time, matching the selection API contract.
+    """
+    import pyarrow.dataset as arrow_ds
+
+    dataset = arrow_ds.dataset(feather_path, format="feather")
+    names = set(dataset.schema.names)
+    resolved = {}
+    for key, candidates in ANNOTATION_ALIASES.items():
+        for c in candidates:
+            if c in names:
+                resolved[key] = c
+                break
+    tables: dict[str, dict[str, list[int]]] = {}
+    if "body" in resolved:
+        body_col = resolved["body"]
+        scanner = dataset.scanner(
+            columns=[body_col] + [v for k, v in resolved.items() if k != "body"],
+            batch_size=batch_size,
+        )
+        for batch in scanner.to_batches():
+            bodies = np.asarray(batch.column(0))
+            for i, key in enumerate([k for k in resolved if k != "body"], start=1):
+                values = np.asarray(batch.column(i))
+                table = tables.setdefault(key, {})
+                for b, v in zip(bodies.tolist(), values.tolist()):
+                    if v is None or (isinstance(v, float) and np.isnan(v)):
+                        continue
+                    table.setdefault(str(v), []).append(int(b))
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(output_path).write_text(json.dumps(tables, indent=1), encoding="utf-8")
+    return tables

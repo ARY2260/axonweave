@@ -92,16 +92,17 @@ class NeuronSelector:
         return self._by_annotation("region", region)
 
     def _by_annotation(self, key: str, value: str):
-        annotations = getattr(self.graph, "annotations", None)
-        if annotations is None:
+        tables = getattr(self.graph, "selection_tables", None)
+        if not tables or key not in tables:
             raise AxonWeaveError(
-                f"AXW010: by_{key}() requires substrate annotations; install the "
-                "substrate with its annotations file to select by annotation"
+                f"AXW010: by_{key}() requires substrate selection tables; "
+                "reinstall the substrate so annotations are built "
+                "(axonweave substrate install male-cns:v1.0)"
             )
-        table = annotations.get(key)
-        if table is None or value not in table:
-            known = sorted(table) if table else []
+        table = tables[key]
+        if value not in table:
             raise AxonWeaveError(
-                f"AXW010: unknown {key} {value!r}; known values: {known}"
+                f"AXW010: unknown {key} {value!r}; "
+                f"known values: {sorted(table)[:20]}{' ...' if len(table) > 20 else ''}"
             )
         return self._resolve(table[value])

@@ -89,6 +89,15 @@ def install_male_cns(root=None, include_synapses=False, include_stats=False):
     if include_stats:
         shutil.copy2(raw / MALE_CNS["files"]["stats"], target / "stats.feather")
 
+    # Selection tables (type/region -> body IDs) for by_type()/by_region().
+    try:
+        from .builder import build_annotations
+        build_annotations(raw / MALE_CNS["files"]["annotations"], target / "annotations.json")
+    except Exception:
+        # Absent selection tables degrade gracefully: by_type/by_region raise
+        # AXW010 with an actionable message at query time.
+        pass
+
     meta = {
         "id": MALE_CNS["id"],
         "version": MALE_CNS["version"],

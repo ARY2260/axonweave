@@ -99,11 +99,8 @@ the authoritative validation environment:
 - [ ] Run all CI jobs on GitHub and fix runner-specific failures.
 - [ ] Verify Python 3.14 compatibility for every dependency/backend.
 - [ ] GPU/TPU self-hosted or vendor runners; sparse-kernel tests on accelerators.
-- [ ] Validate exact upstream schemas and release fixtures.
+- [ ] Validate exact upstream schemas and release fixtures (incl. real annotation column names for `by_type`/`by_region` alias table).
 - [ ] Replace in-memory graph assembly with disk-backed/streaming build.
-- [ ] Neuron selection API (`brain.neurons`) — inspect substrate annotations schema first.
-- [ ] `brain.info()` / `BrainInfo`, `axonweave.capabilities()`.
-- [ ] Checkpoint substrate-fingerprint validation.
 - [ ] Receptor model interface, synaptic delay engine, synapse-level neurotransmitter model.
 - [ ] Portable `.awb` substrate pack/unpack.
 - [ ] API-doc generation from Python docstrings.
@@ -115,3 +112,14 @@ the authoritative validation environment:
 - [ ] Documentation hosting domain and analytics endpoint (pending Pages).
 - [ ] Security/dependency scanning policy completion.
 - [ ] Independent scientific review; reproducibility/benchmark/limitations reports; stable v1.0 API.
+
+## COMPLETED (framework phase additions)
+
+### Introspection and selection (Phase 6)
+- [x] `brain.info()` / `BrainInfo` with `summary()`; `brain.capabilities()` machine-readable report.
+- [x] Deterministic substrate fingerprint (sha256 over CSR + body IDs); exposed as `brain.fingerprint`.
+- [x] Checkpoint substrate-fingerprint validation (AXW002 on incompatible connectome).
+- [x] Neuron selection API (`core/selection.py`): `all()` / `ids()` / `by_mask()` / `by_type()` / `by_region()`, order-preserving, AXW010 on unknown IDs; exposed as `brain.graph.neurons`.
+- [x] Selection tables built from annotation columns at install time (`build_annotations`, alias-resolved, degraded gracefully when columns are absent).
+- [x] Selections wired into all three `ConnectomeLayer` backends (`selection=` parameter, `selection_body_ids` provenance, AXW010 on non-selection argument).
+- [x] Brain docs page documents info/capabilities/fingerprint/selection/selections-in-layers.

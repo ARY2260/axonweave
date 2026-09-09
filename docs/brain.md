@@ -85,20 +85,34 @@ Every selection is an ordered `NeuronSelection` with:
 Selection order is preserved exactly as requested, so `ids([a, b])` and `ids([b, a])` produce differently-ordered (but equivalent) selections. Unknown body IDs raise `AXW010` — the library never silently drops an ID.
 
 :::DOC-NOTE
-`by_type()` and `by_region()` select by cell-type or anatomical-region annotation. They require the substrate's annotations attachment and raise an actionable `AXW010` error when it is absent, rather than returning an empty selection.
+`by_type()` and `by_region()` resolve against selection tables built from the MaleCNS body-annotations file at install time (stored as `annotations.json` in the substrate directory). If the tables are missing — e.g. an older install — reinstalling the substrate builds them; until then these methods raise an actionable `AXW010` error rather than returning an empty selection.
 :::
 
 ```python
-sel = brain.graph.neurons.by_type("kenyon_cell")    # requires annotations
-sel = brain.graph.neurons.by_region("optic_lobe")   # requires annotations
+sel = brain.graph.neurons.by_type("kenyon_cell")
+sel = brain.graph.neurons.by_region("L")           # hemisphere-style region values
 ```
+
+Annotation values are taken verbatim from the substrate's annotation columns (aliases such as `cell_type`/`type` and `side`/`region` are resolved by the builder). To discover the available values, query a known-missing one and read the error message, which lists up to 20 known values.
+
+## Selections in layers
+
+A selection can be handed directly to any backend's `ConnectomeLayer`. The layer then operates on the selected sub-network only — its input/output dimension equals the selection size, weights derive from the sub-matrix, and trainable edge parameters cover only the retained synapses:
+
+```python
+sel = brain.graph.neurons.by_type("kenyon_cell")
+
+layer = brain.torch_layer(trainable_edges=True, selection=sel)  # torch.nn.Module over the sub-network
+```
+
+The layer records `selection_body_ids` so experiment metadata can always recover which neurons it computed over. Passing anything that is not a `NeuronSelection` raises `AXW010`.
 
 ## Framework adapters
 
 ```python
-brain.torch_layer(trainable_edges=True, learnable_gain=True)   # torch.nn.Module
-brain.keras_layer(trainable_edges=True)                        # tf.keras.layers.Layer
-brain.layer(...)                                               # alias for torch_layer
+brain.torch_layer(trainable_edges=True, learnable_gain=True, selection=None)  # torch.nn.Module
+brain.keras_layer(trainable_edges=True, selection=None)                       # tf.keras.layers.Layer
+brain.layer(...)                                                              # alias for torch_layer
 ```
 
 These remain the stable low-level APIs. The high-level facades are additive:
