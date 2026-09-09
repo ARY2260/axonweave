@@ -89,11 +89,15 @@ const pages: Page[] = [
 ];
 
 marked.setOptions({gfm:true, breaks:false});
-// Admonitions: :::DOC-NOTE / :::DOC-WARN become accent-bar callout divs.
+// Admonitions: :::DOC-NOTE / :::DOC-WARN / :::DOC-TIP become accent-bar
+// callout divs. The body is rendered as Markdown first (marked inside a
+// block-level container), so inline code, emphasis, links and lists inside
+// callouts format correctly instead of showing raw markdown characters.
+const calloutBody = (body:string) => (marked.parse(body) as string).trim();
 const normalize = (md:string) => md
- .replace(/^:::DOC-NOTE\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-note"><p class="callout-title">Note</p>\n${body}\n</div>`)
- .replace(/^:::DOC-WARN\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-warn"><p class="callout-title">Constraint</p>\n${body}\n</div>`)
- .replace(/^:::DOC-TIP\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-tip"><p class="callout-title">Tip</p>\n${body}\n</div>`);
+ .replace(/^:::DOC-NOTE\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-note"><p class="callout-title">Note</p>\n${calloutBody(body)}\n</div>`)
+ .replace(/^:::DOC-WARN\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-warn"><p class="callout-title">Constraint</p>\n${calloutBody(body)}\n</div>`)
+ .replace(/^:::DOC-TIP\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-tip"><p class="callout-title">Tip</p>\n${calloutBody(body)}\n</div>`);
 const render = (md:string) => DOMPurify.sanitize(marked.parse(normalize(md)) as string, {ADD_ATTR:['target','rel','class']});
 // Documentation links are written relative to the content directory (e.g.
 // `dynamics.md`); rewrite them to clean, extension-less SPA routes.
