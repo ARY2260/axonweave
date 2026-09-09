@@ -22,6 +22,8 @@ jobs:
         run: npm run design:lint
       - name: Build production site
         working-directory: docs-site
+        env:
+          VITE_BASE_PATH: /axonweave/
         run: npm run build
       - name: Verify build artifacts
         working-directory: docs-site
