@@ -16,8 +16,8 @@
   --accent-strong: #b7e2ef;
   --code: #0b1015;
   --shadow: 0 10px 30px rgba(0,0,0,.2);
-  --font-sans: system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --font-mono: ui-monospace,'Cascadia Mono',Consolas,Menlo,monospace;
+  --font-sans: 'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-mono: 'Iosevka Charon Mono','Cascadia Code','IBM Plex Mono',ui-monospace,'Cascadia Mono',Consolas,Menlo,monospace;
 }
 :root[data-theme=light] {
   color-scheme: light;
@@ -53,12 +53,12 @@
   --color-light-accent: #17677e;
   --color-light-accent-strong: #0f5266;
   --color-light-code: #f0f3f5;
-  --font-h1: system-ui;
-  --font-h2: system-ui;
-  --font-h3: system-ui;
-  --font-body-md: system-ui;
-  --font-body-sm: system-ui;
-  --font-label-caps: system-ui;
+  --font-h1: 'IBM Plex Sans',sans-serif;
+  --font-h2: 'IBM Plex Sans',sans-serif;
+  --font-h3: 'IBM Plex Sans',sans-serif;
+  --font-body-md: 'IBM Plex Sans',sans-serif;
+  --font-body-sm: 'IBM Plex Sans',sans-serif;
+  --font-label-caps: 'IBM Plex Sans',sans-serif;
   --font-code: ui-monospace;
   --text-h1: 44px;
   --text-h2: 27px;

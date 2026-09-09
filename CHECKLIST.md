@@ -14,6 +14,7 @@ Status legend:
 - [x] Complete repository README.
 - [x] Architecture and AI-agent governance documents (`AGENTS.md`, `CODE_TOKENS.md`, docs-site `AGENTS.md`).
 - [x] Frontend design system (`docs-site/DESIGN.md`, Google DESIGN.md spec, token linting).
+- [x] Documentation typography: IBM Plex Sans (UI/body/headings) + Iosevka Charon Mono (code) loaded via Google Fonts with preconnect and `display=swap`; `--font-ui`/`--font-code` CSS variables with full system fallbacks; tabular-nums for API-reference tables; DESIGN.md + tokens.css kept in sync (lint 0 errors).
 - [x] SVG logo and favicon.
 - [x] Browser-based Markdown documentation renderer.
 - [x] Sidebar, navigation, TOC, theme switcher and copy buttons.

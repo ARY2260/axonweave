@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: AxonWeave Docs
-description: Design tokens for the AxonWeave documentation site. Dark theme is default; light theme is the inverse. Typography uses standard system sans-serif/monospace stacks (like PyTorch and TensorFlow docs) instead of a single custom webfont. Tokens map 1:1 to CSS custom properties in src/style.css.
+description: Design tokens for the AxonWeave documentation site. Dark theme is default; light theme is the inverse. Typography uses IBM Plex Sans for UI/body/headings and Iosevka Charon Mono for code, loaded via Google Fonts with system-stack fallbacks. Tokens map 1:1 to CSS custom properties in src/style.css.
 colors:
   primary: "#b7e2ef"
   bg: "#121212"
@@ -27,35 +27,35 @@ colors:
   light-code: "#18181b"
 typography:
   h1:
-    fontFamily: system-ui
+    fontFamily: IBM Plex Sans
     fontSize: 44px
     fontWeight: 700
     lineHeight: "1.1"
     letterSpacing: "-0.04em"
   h2:
-    fontFamily: system-ui
+    fontFamily: IBM Plex Sans
     fontSize: 27px
     fontWeight: 700
     lineHeight: "1.2"
     letterSpacing: "-0.025em"
   h3:
-    fontFamily: system-ui
+    fontFamily: IBM Plex Sans
     fontSize: 20px
     fontWeight: 600
   body-md:
-    fontFamily: system-ui
+    fontFamily: IBM Plex Sans
     fontSize: 16px
-    lineHeight: "1.65"
+    lineHeight: "1.6"
   body-sm:
-    fontFamily: system-ui
+    fontFamily: IBM Plex Sans
     fontSize: 14px
   label-caps:
-    fontFamily: system-ui
+    fontFamily: IBM Plex Sans
     fontSize: 11px
     fontWeight: 700
     letterSpacing: "0.1em"
   code:
-    fontFamily: ui-monospace
+    fontFamily: Iosevka Charon Mono
     fontSize: 13px
 rounded:
   sm: 3px
@@ -166,7 +166,7 @@ Dark theme (default) is normative; light theme tokens are prefixed `light-` and 
 
 ## Typography
 
-Standard system font stacks, following the convention of PyTorch and TensorFlow documentation: system sans-serif (`system-ui`) for UI/body/headings and system monospace (`ui-monospace`) for code. No webfont download, no FOUC, native rendering per OS. Headings use tight negative tracking. `label-caps` is for sidebar group labels and TOC headers only.
+Typography uses two technical typefaces loaded via Google Fonts (`display=swap`, preconnected): **IBM Plex Sans** (400/500/600/700 + italic 400) for UI, body and headings, and **Iosevka Charon Mono** (400/500) for code, inline code, kbd and code-block chrome. Both declare full system-stack fallbacks (`--font-ui` / `--font-code` in `src/style.css`), so pages render immediately in the system font and upgrade when the webfonts arrive — no FOUC, no flash of unstyled text. Code uses `letter-spacing: -0.015em` and normal ligatures. API-reference tables use `font-variant-numeric: tabular-nums lining-nums` so numeric columns align. Headings use tight negative tracking. `label-caps` is for sidebar group labels and TOC headers only.
 
 ## Layout
 
