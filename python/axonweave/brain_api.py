@@ -6,8 +6,13 @@ Implemented as a module-level extension function invoked from
 from __future__ import annotations
 
 
-def brain_task(brain, input=None, output=None, dynamics="rate", **kwargs):
-    """``brain.task(...)`` — supervised BrainModel with optional interfaces."""
+def brain_task(brain, input=None, output=None, dynamics="rate", selection=None, **kwargs):
+    """``brain.task(...)`` — supervised BrainModel with optional interfaces.
+
+    ``selection`` (a ``NeuronSelection``) restricts the whole task pipeline to
+    a sub-network: input projection, dynamics, and readout all operate on the
+    selected neurons only.
+    """
     torch = kwargs.pop("_torch", None)
     if torch is None:
         try:
@@ -19,7 +24,7 @@ def brain_task(brain, input=None, output=None, dynamics="rate", **kwargs):
             ) from e
     from .frameworks.torch import BrainModel
 
-    model = BrainModel(brain, dynamics=dynamics, **kwargs)
+    model = BrainModel(brain, dynamics=dynamics, selection=selection, **kwargs)
     if input is not None or output is not None:
         from .frameworks.torch import Input, Readout
         if input is not None:

@@ -111,8 +111,24 @@ function CodeEnhancer(){
    blocks.forEach(pre=>{
      if(pre.querySelector('button')) return;
      const button=document.createElement('button'); button.className='copy-button'; button.setAttribute('aria-label','Copy code'); button.innerHTML='<span class="copy-label">Copy</span>';
-     button.onclick=async()=>{await navigator.clipboard.writeText(pre.querySelector('code')?.textContent||'');const l=button.querySelector('.copy-label');if(l){l.textContent='Copied!';setTimeout(()=>{l.textContent='Copy'},1400)}};
+     button.onclick=async()=>{
+       await navigator.clipboard.writeText(pre.querySelector('code')?.textContent||'');
+       const label=button.querySelector('.copy-label');
+       button.classList.add('copied');
+       if(label)label.textContent='Copied!';
+       setTimeout(()=>{button.classList.remove('copied');if(label)label.textContent='Copy'},1400);
+     };
      pre.appendChild(button);
+     // Horizontal-scroll hint for blocks wider than their container.
+     const wrap=document.createElement('div'); wrap.className='pre-wrap';
+     pre.replaceWith(wrap); wrap.appendChild(pre);
+     const hint=document.createElement('span'); hint.className='scroll-hint'; hint.setAttribute('aria-hidden','true'); hint.textContent='scroll →';
+     wrap.appendChild(hint);
+     const update=()=>hint.classList.toggle('visible', pre.scrollWidth > pre.clientWidth + 4);
+     update();
+     // Hide the hint permanently once the user scrolls the block.
+     pre.addEventListener('scroll',()=>hint.classList.remove('visible'),{once:true,passive:true});
+     if(typeof ResizeObserver!=='undefined')new ResizeObserver(update).observe(pre);
    });
    // Load MathJax for pages containing $$..$$ or $..$ math.
    const article=document.querySelector('article');

@@ -11,6 +11,7 @@ from torch import nn
 
 from ...dynamics import LIF, AdaptiveLIF, Rate, DynamicsModel
 from ...torch.layer import ConnectomeLayer
+from ...core.selection import NeuronSelection
 
 
 DYNAMICS: dict[str, type[DynamicsModel]] = {
@@ -43,17 +44,20 @@ class ConnectomeBlock(nn.Module):
 
     def __init__(self, brain, dynamics: str | DynamicsModel = "rate",
                  trainable_edges: bool = False, learnable_gain: bool = False,
-                 select: int | list | None = None, n_steps: int = 1, seed: int | None = None):
+                 select: int | list | None = None, n_steps: int = 1, seed: int | None = None,
+                 selection: NeuronSelection | None = None):
         super().__init__()
         if dynamics not in ("rate",) and n_steps != 1 and trainable_edges:
             # Gradient flow through multi-step spiking dynamics is not
             # surrogate-gradient enabled yet; be explicit rather than silent.
             pass
         self.brain = brain
-        self.layer = ConnectomeLayer(brain.graph, trainable_edges=trainable_edges,
-                                     learnable_gain=learnable_gain)
-        self.dynamics = resolve_dynamics(dynamics)
-        self.n_steps = n_steps
+        self.layer = ConnectomeLayer(
+            brain.graph, trainable_edges=trainable_edges,
+            learnable_gain=learnable_gain, selection=selection)
+        # Selection defines the block's neuron space; None means the full brain.
+        self.selection = selection
+        self.n_active = self.layer.n_neurons
         self.select = select
         self.seed = seed
         self._state = None
@@ -64,13 +68,13 @@ class ConnectomeBlock(nn.Module):
         return np.asarray(self.select, dtype=np.int64)
 
     def forward(self, x):
-        if x.shape[-1] != self.brain.n_neurons:
+        if x.shape[-1] != self.n_active:
             raise ValueError(
-                f"AXW010: expected last dimension {self.brain.n_neurons}, got {x.shape[-1]}"
+                f"AXW010: expected last dimension {self.n_active}, got {x.shape[-1]}"
             )
         np_x = x.detach().cpu().numpy()
-        W = self.brain.graph.weights
-        n = self.brain.n_neurons
+        W = self.layer.graph_weights if self.selection is not None else self.brain.graph.weights
+        n = self.n_active
         batch_shape = np_x.shape[:-1]
         if self._state is None:
             self._state = self.dynamics.initial_state(n, batch_shape)
@@ -95,25 +99,36 @@ class BrainModel(nn.Module):
 
     def __init__(self, brain, dynamics: str | DynamicsModel = "rate",
                  trainable_edges: bool = False, train_dynamics: bool = False,
-                 learning: str | None = None, seed: int | None = None):
+                 learning: str | None = None, seed: int | None = None,
+                 selection: NeuronSelection | None = None):
         super().__init__()
         self.brain = brain
+        self.selection = selection
         self.block = ConnectomeBlock(brain, dynamics=dynamics,
-                                     trainable_edges=trainable_edges, seed=seed)
+                                     trainable_edges=trainable_edges, seed=seed,
+                                     selection=selection)
+        # Interface projections target the block's neuron space (sub-network
+        # when a selection is given, full brain otherwise).
+        self._io_size = self.block.n_active
         self.input_proj: nn.Linear | None = None
         self.readout: nn.Linear | None = None
         self.train_dynamics = train_dynamics
         self.learning = learning
         self.seed = seed
 
+    @property
+    def n_active(self) -> int:
+        """Neurons the model computes over (sub-network size or full brain)."""
+        return self._io_size
+
     def connect(self, module):
         """Register an Input or Readout interface module."""
         from .interfaces import Input, Readout
 
         if isinstance(module, Input):
-            self.input_proj = nn.Linear(module.size, self.brain.n_neurons)
+            self.input_proj = nn.Linear(module.size, self._io_size)
         elif isinstance(module, Readout):
-            self.readout = nn.Linear(self.brain.n_neurons, module.size)
+            self.readout = nn.Linear(self._io_size, module.size)
         else:
             raise ValueError("AXW010: connect() accepts Input or Readout instances")
         return self
