@@ -1,12 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-<title id="title">AxonWeave logo</title><desc id="desc">A woven neural axon mark formed by intersecting pathways around a central node.</desc>
-<rect width="256" height="256" rx="52" fill="#10151b"/>
-<g fill="none" stroke="#d9e2ea" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-<path d="M54 72 C92 34 164 34 202 72 C220 90 220 112 202 128 C220 144 220 166 202 184 C164 222 92 222 54 184 C36 166 36 144 54 128 C36 112 36 90 54 72Z"/>
-<path d="M54 72 C92 110 164 146 202 184"/>
-<path d="M202 72 C164 110 92 146 54 184"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+<title id="title">AxonWeave</title><desc id="desc">Simplified woven axon mark: two interlaced strands crossing a central node.</desc>
+<rect width="64" height="64" rx="14" fill="#10151b"/>
+<g fill="none" stroke="#d9e2ea" stroke-width="5" stroke-linecap="round">
+<path d="M10 19 C22 19 26 32 32 32 C38 32 42 45 54 45"/>
+<path d="M10 45 C22 45 26 32 32 32 C38 32 42 19 54 19"/>
 </g>
-<circle cx="128" cy="128" r="16" fill="#d9e2ea"/>
-<circle cx="54" cy="72" r="7" fill="#7fb3c8"/><circle cx="202" cy="72" r="7" fill="#7fb3c8"/>
-<circle cx="54" cy="184" r="7" fill="#7fb3c8"/><circle cx="202" cy="184" r="7" fill="#7fb3c8"/>
+<g fill="none" stroke="#ee4c2c" stroke-width="5" stroke-linecap="round" opacity="0.92">
+<path d="M12 16 C24 20 28 34 40 44"/>
+<path d="M12 48 C24 44 28 30 40 20"/>
+</g>
+<circle cx="32" cy="32" r="6" fill="#10151b" stroke="#d9e2ea" stroke-width="2.5"/>
+<circle cx="32" cy="32" r="2" fill="#ee4c2c"/>
 </svg>

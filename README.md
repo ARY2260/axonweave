@@ -1,5 +1,11 @@
 # AxonWeave
 
+<div align="center">
+  <img src="docs-site/public/logo.svg" alt="AxonWeave logo" width="120"/>
+  <p><strong>AxonWeave</strong> · v0.1.0</p>
+  <p><em>A woven neural axon mark — two interlaced strands crossing a central soma node.</em></p>
+</div>
+
 AxonWeave is an open-source Python library for using the **Drosophila Male CNS v1.0 connectome** as a reusable, trainable biological neural substrate and as a composable layer inside conventional machine-learning models.
 
 It is designed around one separation: **the published biological substrate is source data; the computational model is an explicit, configurable interpretation of that substrate.** AxonWeave therefore does not claim that a connectome by itself is a complete biophysical simulation.
@@ -20,6 +26,8 @@ It is designed around one separation: **the published biological substrate is so
 - Interoperability targets for `neuprint-python` and `navis`.
 
 ## Install
+
+Current release: **v0.1.0** (see [`axonweave.__version__`](python/axonweave/__init__.py) — the single source of truth mirrored into wheel metadata, `CITATION.cff`, and the docs-site version menu).
 
 The Python package stays small. Multi-gigabyte biological source files are **not** embedded in the PyPI wheel.
 

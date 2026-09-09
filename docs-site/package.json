@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "design:lint": "designmd lint DESIGN.md",
+    "verify:render": "node scripts/verify-render.mjs",
     "check": "tsc -b && vite build",
     "postbuild": "cp dist/index.html dist/404.html"
   },
@@ -28,6 +29,7 @@
     "@google/design.md": "^0.4.0",
     "@types/prismjs": "^1.26.6",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7"
+    "@types/react-dom": "^19.2.7",
+    "jsdom": "^30.0.1"
   }
 }

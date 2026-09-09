@@ -119,9 +119,42 @@ class BiologicalBrain:
         return ConnectomeLayer(self.graph, **kwargs)
 
     def task(self, **kwargs):
-        """Supervised BrainModel facade (Phase 1)."""
+        """Supervised BrainModel facade (Phase 1, requires torch)."""
         from ..brain_api import brain_task
         return brain_task(self, **kwargs)
+
+    def keras_task(self, input=None, output=None, dynamics="rate", selection=None, **kwargs):
+        """Supervised Keras BrainLayer facade (requires tensorflow).
+
+        Keras mirror of :meth:`task`: wires Input/Readout interface
+        descriptors into a :class:`~axonweave.frameworks.keras.BrainLayer`
+        suitable for the Functional/Sequential APIs and ``model.fit()``.
+        """
+        try:
+            import tensorflow  # noqa: F401
+        except ImportError as e:
+            from ..errors import BackendUnavailableError
+            raise BackendUnavailableError(
+                "AXW006: brain.keras_task requires TensorFlow; "
+                "install axonweave[tensorflow]"
+            ) from e
+        from ..frameworks.keras import BrainLayer
+        from ..frameworks.torch.interfaces import Input, Readout
+
+        model = BrainLayer(self, dynamics=dynamics, selection=selection, **kwargs)
+        if input is not None:
+            size = getattr(input, "n_target", None) or getattr(input, "size", None)
+            if size is None:
+                from ..errors import ApiUsageError
+                raise ApiUsageError("AXW010: input encoder must expose n_target")
+            model.connect(Input(int(size)))
+        if output is not None:
+            size = getattr(output, "vocab_size", None) or getattr(output, "actions", None)
+            if size is None:
+                from ..errors import ApiUsageError
+                raise ApiUsageError("AXW010: output decoder must expose vocab_size or actions")
+            model.connect(Readout(int(size)))
+        return model
 
     def agent(self, **kwargs):
         """Environment agent facade (Phase 1/5)."""

@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "axonweave"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Trainable sparse biological neural substrates and composable connectome layers"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -47,6 +47,8 @@ python-source = "python"
 module-name = "axonweave._native"
 bindings = "pyo3"
 features = ["pyo3/extension-module"]
+# Version single source of truth: python/axonweave/__init__.py __version__.
+# maturin parses it at build time and injects it into wheel metadata.
 
 [tool.pytest.ini_options]
 addopts = "-ra"

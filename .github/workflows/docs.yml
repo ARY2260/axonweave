@@ -26,6 +26,9 @@ jobs:
       - name: Lint DESIGN.md design tokens
         working-directory: docs-site
         run: npm run design:lint
+      - name: Verify markdown rendering (no raw markdown leaks, links resolve)
+        working-directory: docs-site
+        run: npm run verify:render
       - name: Build production site
         working-directory: docs-site
         env:
