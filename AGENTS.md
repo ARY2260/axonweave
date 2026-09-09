@@ -58,7 +58,6 @@ Test graph shape/index invariants, serialization, error behavior, backend numeri
 - `tests/`: unit/integration tests.
 - `docs/`: source technical documentation.
 - `docs-site/`: actual web documentation application (has its own `AGENTS.md`).
-- `agents/archive/`: superseded agent files kept for history.
 - `.github/workflows/`: CI/CD only.
 
 ## Change protocol
