@@ -90,7 +90,7 @@ low-level APIs remain unchanged.
 - [x] `brain.info()` / `BrainInfo` structured metadata (incl. `summary()`).
 - [x] `brain.capabilities()` backend/device reporting.
 - [x] Checkpoint substrate-fingerprint validation (refuse mismatched graphs, AXW002).
-- [ ] First-class `axonweave.readout` package re-exports.
+- [x] First-class `axonweave.readout` package: `ClassificationReadout`, `RegressionReadout`, `TokenReadout`, `ActionReadout` (explicit `n_source` guards, reference SGD `update()`, top-level re-exports).
 - [ ] Keras high-level adapter (`axonweave.keras.BrainLayer`).
 - [ ] JAX high-level adapter.
 - [ ] Surrogate-gradient training through spiking dynamics.

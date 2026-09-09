@@ -1,6 +1,12 @@
 from .core.graph import ConnectomeGraph
 from .core.brain import BiologicalBrain
 from .data.registry import SubstrateRegistry
+from .readout import (
+    ActionReadout,
+    ClassificationReadout,
+    RegressionReadout,
+    TokenReadout,
+)
 from .signals import SignalPolicy, NeurotransmitterGain, LeakyPropagation
 
 try:
@@ -16,4 +22,5 @@ def load(name="male-cns:v1.0"):
 __all__ = [
     "ConnectomeGraph", "BiologicalBrain", "SubstrateRegistry", "SignalPolicy",
     "NeurotransmitterGain", "LeakyPropagation", "load", "native_version",
+    "ClassificationReadout", "RegressionReadout", "TokenReadout", "ActionReadout",
 ]

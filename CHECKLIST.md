@@ -124,3 +124,5 @@ the authoritative validation environment:
 - [x] Selection tables built from annotation columns at install time (`build_annotations`, alias-resolved, degraded gracefully when columns are absent).
 - [x] Selections wired into all three `ConnectomeLayer` backends (`selection=` parameter, `selection_body_ids` provenance, AXW010 on non-selection argument).
 - [x] Brain docs page documents info/capabilities/fingerprint/selection/selections-in-layers.
+- [x] First-class `axonweave.readout` package: `ClassificationReadout`, `RegressionReadout`, `TokenReadout`, `ActionReadout` with explicit `n_source` dimension guards (AXW010), reference-path SGD `update()` gated on `trainable=True`, deterministic seeds, top-level re-exports; 12 tests; Readouts doc page in Concepts section.
+- [x] Docs: language label chips on code blocks; line-number gutters on long Python blocks; pinned (sticky) gutter rail outside the scrolling code area; per-page re-highlighting fix; SF Mono leading the code font stack; Prism powershell grammar.

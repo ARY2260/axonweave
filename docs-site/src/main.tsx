@@ -46,6 +46,7 @@ import devicesMd from '../content/devices.md?raw';
 import faqMd from '../content/faq.md?raw';
 import limitationsMd from '../content/limitations.md?raw';
 import errorsMd from '../content/errors.md?raw';
+import readoutsMd from '../content/readouts.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
@@ -59,6 +60,7 @@ const pages: Page[] = [
  {slug:'dynamics',label:'Neuron Dynamics',source:dynamicsMd,section:'Concepts'},
  {slug:'signals',label:'Signals & Receptors',source:signalsMd,section:'Concepts'},
  {slug:'encoders',label:'Encoders & Decoders',source:encodersMd,section:'Concepts'},
+ {slug:'readouts',label:'Readouts',source:readoutsMd,section:'Concepts'},
  {slug:'tasks',label:'Tasks',source:tasksMd,section:'Concepts'},
  {slug:'training',label:'Training',source:trainingMd,section:'Guides'},
  {slug:'learning',label:'Learning & Plasticity',source:learningMd,section:'Guides'},
