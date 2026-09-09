@@ -113,6 +113,24 @@ function CodeEnhancer({slug}:{slug:string}){
    const blocks=[...document.querySelectorAll('pre')];
    blocks.forEach(pre=>{
      if(pre.querySelector('button')) return;
+     // Language label chip (e.g. python / bash / toml) from the fence class.
+     const codeEl=pre.querySelector('code');
+     const lang=[...((codeEl?.className||'').match(/language-([\w-]+)/)||[])][1];
+     if(lang && lang!=='text' && lang!=='none'){
+       const chip=document.createElement('span');
+       chip.className='lang-chip';
+       chip.setAttribute('aria-hidden','true');
+       chip.textContent=lang;
+       pre.appendChild(chip);
+     }
+     // Line-number gutter for long Python blocks (>= 8 lines).
+     if(lang==='python' && codeEl){
+       const lines=(codeEl.textContent||'').replace(/\n$/,'').split('\n').length;
+       if(lines>=8){
+         codeEl.classList.add('ln-gutter');
+         codeEl.style.setProperty('--ln-count',String(lines));
+       }
+     }
      const button=document.createElement('button'); button.className='copy-button'; button.setAttribute('aria-label','Copy code'); button.innerHTML='<span class="copy-label">Copy</span>';
      button.onclick=async()=>{
        await navigator.clipboard.writeText(pre.querySelector('code')?.textContent||'');
