@@ -17,6 +17,7 @@
     "dompurify": "latest",
     "lucide-react": "latest",
     "marked": "latest",
+    "prismjs": "^1.30.0",
     "react": "latest",
     "react-dom": "latest",
     "react-helmet-async": "latest",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@google/design.md": "^0.4.0",
+    "@types/prismjs": "^1.26.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7"
   }

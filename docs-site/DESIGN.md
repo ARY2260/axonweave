@@ -4,25 +4,27 @@ name: AxonWeave Docs
 description: Design tokens for the AxonWeave documentation site. Dark theme is default; light theme is the inverse. Typography uses standard system sans-serif/monospace stacks (like PyTorch and TensorFlow docs) instead of a single custom webfont. Tokens map 1:1 to CSS custom properties in src/style.css.
 colors:
   primary: "#b7e2ef"
-  bg: "#10151b"
-  surface: "#151c23"
-  surface-2: "#1b242d"
-  text: "#e7edf2"
-  muted: "#aeb8c2"
-  line: "#2a343e"
+  bg: "#121212"
+  surface: "#1a1c1e"
+  surface-2: "#242628"
+  text: "#e8eaed"
+  muted: "#9aa4ad"
+  line: "#33383d"
   accent: "#8dc4d8"
   accent-strong: "#b7e2ef"
-  code: "#0b1015"
-  on-primary: "#10151b"
-  light-bg: "#f6f7f8"
+  brand: "#ee4c2c"
+  code: "#18181b"
+  code-border: "#2e3135"
+  on-primary: "#121212"
+  light-bg: "#f8f9fa"
   light-surface: "#ffffff"
   light-surface-2: "#eef1f3"
-  light-text: "#172027"
-  light-muted: "#55616b"
-  light-line: "#d9dfe4"
+  light-text: "#202124"
+  light-muted: "#5f6b76"
+  light-line: "#dadce0"
   light-accent: "#17677e"
   light-accent-strong: "#0f5266"
-  light-code: "#f0f3f5"
+  light-code: "#18181b"
 typography:
   h1:
     fontFamily: system-ui
@@ -149,18 +151,18 @@ components:
 
 ## Overview
 
-AxonWeave Documentation Frontend Design System. A restrained, high-contrast documentation UI: deep ink backgrounds (or clean paper in light mode), a single cool steel-blue accent, standard system sans-serif for reading and system monospace for code (matching the PyTorch/TensorFlow docs convention). Documentation first — nothing decorative competes with text.
+AxonWeave Documentation Frontend Design System. A restrained, high-contrast documentation UI in the PyTorch/TensorFlow technical-docs tradition: deep charcoal canvas (#121212 dark / #f8f9fa light), a single steel-blue accent for links, and a coral-red brand color (#ee4c2c) reserved for active states. Standard system sans-serif for reading and system monospace for code. Documentation first — nothing decorative competes with text.
 
 ## Colors
 
 Dark theme (default) is normative; light theme tokens are prefixed `light-` and map to the same CSS custom properties under `:root[data-theme=light]`.
 
-- **bg / surface / surface-2:** layered ink surfaces for page, cards and hover states.
+- **bg / surface / surface-2:** layered charcoal surfaces for page, cards and hover states.
 - **text / muted:** primary reading text and secondary metadata.
 - **line:** hairline borders only — never colored card borders.
 - **accent / accent-strong:** links and small highlights. Not used for gradients.
-- **code:** slightly darker than `surface` so code blocks read as inset.
-- **on-primary:** text on primary buttons (primary buttons invert `text`/`bg`).
+- **brand:** coral red-orange (#ee4c2c), reserved exclusively for active states and focal points (TOC active marker).
+- **code / code-border:** code containers keep a dedicated dark IDE aesthetic (#18181b) in BOTH themes — code blocks do not change with the page theme.
 
 ## Typography
 
@@ -168,7 +170,11 @@ Standard system font stacks, following the convention of PyTorch and TensorFlow 
 
 ## Layout
 
-Hairline borders use `line` / `light-line` (decorative, excluded from WCAG text-contrast rules). Desktop: fixed top navigation, left documentation sidebar, centered reading column (max 760px), right-side TOC when space permits. Mobile: collapsible navigation drawer, single reading column, TOC hidden.
+Hairline borders use `line` / `light-line` (decorative, excluded from WCAG text-contrast rules). Fixed top bar carries brand, structural tabs (Learn, API, Tutorials, GitHub), a visible search trigger with Shift+/ shortcut, and a stable/nightly version selector. Desktop: top navigation, left documentation sidebar (user-resizable via a drag handle, persisted to localStorage), centered reading column (max 760px), right-side "On this page" TOC with scroll-position tracking. Mobile: collapsible navigation drawer, single reading column, TOC hidden.
+
+## Callouts
+
+Advisory boxes are flat, with a 3px solid left accent bar: blue for notes, amber for constraints/warnings, green for tips. Solid fills, no shadows, no glassmorphism.
 
 ## Components
 

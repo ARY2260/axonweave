@@ -1,9 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import { Menu, Moon, Sun, Copy, Check, Search, X } from 'lucide-react';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-toml';
+import { Menu, Moon, Sun, Search, X, ChevronRight } from 'lucide-react';
 import './style.css';
 
 import indexMd from '../content/index.md?raw';
@@ -23,15 +27,25 @@ import privacyMd from '../content/privacy.md?raw';
 import termsMd from '../content/terms.md?raw';
 import examplesCustomPolicyMd from '../content/examples-custom-policy.md?raw';
 import examplesPytorchCompositionMd from '../content/examples-pytorch-composition.md?raw';
+import frameworkMd from '../content/framework.md?raw';
+import encodersMd from '../content/encoders.md?raw';
+import dynamicsMd from '../content/dynamics.md?raw';
+import learningMd from '../content/learning.md?raw';
+import experimentMd from '../content/experiment.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
  {slug:'index',label:'Overview',source:indexMd,section:'Start'},
  {slug:'getting-started',label:'Getting Started',source:gettingStartedMd,section:'Start'},
  {slug:'architecture',label:'Architecture',source:architectureMd,section:'Core'},
+ {slug:'framework',label:'Framework API',source:frameworkMd,section:'Core'},
  {slug:'backends',label:'Backends & Devices',source:backendsMd,section:'Core'},
  {slug:'biology',label:'Biological Model',source:biologyMd,section:'Science'},
+ {slug:'dynamics',label:'Neuron Dynamics',source:dynamicsMd,section:'Science'},
  {slug:'interoperability',label:'Interoperability',source:interoperabilityMd,section:'Science'},
+ {slug:'encoders',label:'Encoders & Decoders',source:encodersMd,section:'Interfaces'},
+ {slug:'learning',label:'Learning & Plasticity',source:learningMd,section:'Interfaces'},
+ {slug:'experiment',label:'Experiments',source:experimentMd,section:'Interfaces'},
  {slug:'distribution',label:'Substrate Distribution',source:distributionMd,section:'Operations'},
  {slug:'scientific-reference',label:'Scientific Reference',source:scientificMd,section:'Science'},
  {slug:'examples-pytorch-composition',label:'Example: PyTorch Composition',source:examplesPytorchCompositionMd,section:'Examples'},
@@ -46,26 +60,40 @@ const pages: Page[] = [
 ];
 
 marked.setOptions({gfm:true, breaks:false});
-const normalize = (md:string) => md.replace(/^:::DOC-NOTE\n([\s\S]*?)\n:::/gm, '> **Note**\n> $1').replace(/^:::DOC-WARN\n([\s\S]*?)\n:::/gm, '> **Constraint**\n> $1');
-const render = (md:string) => DOMPurify.sanitize(marked.parse(normalize(md)) as string, {ADD_ATTR:['target','rel']});
+// Admonitions: :::DOC-NOTE / :::DOC-WARN become accent-bar callout divs.
+const normalize = (md:string) => md
+ .replace(/^:::DOC-NOTE\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-note"><p class="callout-title">Note</p>\n${body}\n</div>`)
+ .replace(/^:::DOC-WARN\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-warn"><p class="callout-title">Constraint</p>\n${body}\n</div>`)
+ .replace(/^:::DOC-TIP\n([\s\S]*?)\n:::/gm, (_m, body:string) => `<div class="callout callout-tip"><p class="callout-title">Tip</p>\n${body}\n</div>`);
+const render = (md:string) => DOMPurify.sanitize(marked.parse(normalize(md)) as string, {ADD_ATTR:['target','rel','class']});
 const BASE = import.meta.env.BASE_URL;
 const BASE_PREFIX = BASE.endsWith('/') ? BASE.slice(0,-1) : BASE;
 const hrefFor = (slug:string) => `${BASE}${slug==='index'?'':slug}`;
 const pathSlug = () => location.pathname.replace(BASE_PREFIX,'').replace(/^\//,'').replace(/\/$/,'') || 'index';
 
+const VERSIONS = ['stable (0.1.0)','nightly'];
+
 function CodeEnhancer(){
- const [copied,setCopied]=useState<number|null>(null);
  useEffect(()=>{
+   Prism.highlightAllUnder(document.querySelector('article') ?? document.body);
    const blocks=[...document.querySelectorAll('pre')];
-   blocks.forEach((pre,i)=>{
+   blocks.forEach(pre=>{
      if(pre.querySelector('button')) return;
      const button=document.createElement('button'); button.className='copy-button'; button.setAttribute('aria-label','Copy code'); button.innerHTML='<span class="copy-label">Copy</span>';
-     button.onclick=async()=>{await navigator.clipboard.writeText(pre.querySelector('code')?.textContent||'');setCopied(i);setTimeout(()=>setCopied(null),1400)};
+     button.onclick=async()=>{await navigator.clipboard.writeText(pre.querySelector('code')?.textContent||'');const l=button.querySelector('.copy-label');if(l){l.textContent='Copied!';setTimeout(()=>{l.textContent='Copy'},1400)}};
      pre.appendChild(button);
    });
-   return ()=>{};
+   // Load MathJax for pages containing $$..$$ or $..$ math.
+   const article=document.querySelector('article');
+   if(article && /\$\$[^$]+\$\$|(?<![\\$\w])\$(?!\s)[^$\n]+?(?<!\\)\$(?![\w$])/.test(article.textContent||'') && !(window as any).MathJax){
+     const s=document.createElement('script');
+     s.src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+     s.async=true;
+     (window as any).MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]}};
+     document.head.appendChild(s);
+   }
  },[]);
- return <span className="copy-status" aria-live="polite">{copied!==null?'Copied':''}</span>;
+ return null;
 }
 
 function App(){
@@ -73,8 +101,26 @@ function App(){
  const [dark,setDark]=useState(localStorage.getItem('axonweave-theme')!=='light');
  const [mobile,setMobile]=useState(false);
  const [searchOpen,setSearchOpen]=useState(false);
+ const [sidebarWidth,setSidebarWidth]=useState<number>(()=>parseInt(localStorage.getItem('axonweave-sidebar')||'240',10));
+ const [version,setVersion]=useState(VERSIONS[0]);
+ const dragRef=useRef<{startX:number,startW:number}|null>(null);
  useEffect(()=>{const fn=()=>setSlug(pathSlug()); addEventListener('popstate',fn);return()=>removeEventListener('popstate',fn)},[]);
  useEffect(()=>{document.documentElement.dataset.theme=dark?'dark':'light';localStorage.setItem('axonweave-theme',dark?'dark':'light')},[dark]);
+ useEffect(()=>{
+   const onMove=(e:MouseEvent)=>{if(!dragRef.current)return;const w=Math.min(420,Math.max(180,dragRef.current.startW+(e.clientX-dragRef.current.startX)));setSidebarWidth(w)};
+   const onUp=()=>{if(dragRef.current){dragRef.current=null;document.body.classList.remove('resizing')}};
+   addEventListener('mousemove',onMove);addEventListener('mouseup',onUp);
+   return()=>{removeEventListener('mousemove',onMove);removeEventListener('mouseup',onUp)};
+ },[]);
+ useEffect(()=>{localStorage.setItem('axonweave-sidebar',String(sidebarWidth))},[sidebarWidth]);
+ // Global search shortcut: Shift + /
+ useEffect(()=>{
+   const onKey=(e:KeyboardEvent)=>{
+     if(e.shiftKey && e.key==='?'){e.preventDefault();setSearchOpen(true)}
+     if(e.key==='Escape')setSearchOpen(false);
+   };
+   addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);
+ },[]);
  const page=pages.find(p=>p.slug===slug);
  const html=useMemo(()=>page?render(page.source):'', [page]);
  useEffect(()=>{document.title=page?`${page.label} · AxonWeave`: 'Page not found · AxonWeave'; const domain=import.meta.env.VITE_ANALYTICS_DOMAIN as string|undefined; if(domain && !document.querySelector('script[data-axonweave-analytics]')){const script=document.createElement('script');script.defer=true;script.dataset.domain=domain;script.dataset.axonweaveAnalytics='true';script.src=`https://plausible.io/js/script.js`;document.head.appendChild(script)}},[page]);
@@ -84,26 +130,52 @@ function App(){
    <header className="topbar">
      <button className="icon-button mobile-menu" onClick={()=>setMobile(!mobile)} aria-label="Open navigation"><Menu size={20}/></button>
      <a className="brand" href="/" onClick={e=>{e.preventDefault();navigate('index')}}><img src={`${BASE}logo.svg`} alt="AxonWeave"/><span>AxonWeave</span></a>
-     <nav className="topnav"><a href={hrefFor('getting-started')} onClick={e=>{e.preventDefault();navigate('getting-started')}}>Docs</a><a href="https://github.com/dhakalnirajan/axonweave">GitHub</a><div className="learn-menu"><button className="learn-trigger">Learn <span>▾</span></button><div className="learn-dropdown"><a href={hrefFor('biology')} onClick={e=>{e.preventDefault();navigate('biology')}}>Biological Model</a><a href={hrefFor('backends')} onClick={e=>{e.preventDefault();navigate('backends')}}>Backends &amp; Devices</a><a href={hrefFor('interoperability')} onClick={e=>{e.preventDefault();navigate('interoperability')}}>Interoperability</a><a href={hrefFor('examples-pytorch-composition')} onClick={e=>{e.preventDefault();navigate('examples-pytorch-composition')}}>PyTorch Example</a></div></div><a href={hrefFor('scientific-reference')} onClick={e=>{e.preventDefault();navigate('scientific-reference')}}>Scientific Reference</a></nav>
-     <div className="top-actions"><button className="icon-button" onClick={()=>setSearchOpen(true)} aria-label="Search documentation"><Search size={19}/></button><button className="icon-button" onClick={()=>setDark(!dark)} aria-label="Toggle theme">{dark?<Sun size={19}/>:<Moon size={19}/>}</button></div>
+     <nav className="topnav">
+       <a href={hrefFor('getting-started')} onClick={e=>{e.preventDefault();navigate('getting-started')}}>Learn</a>
+       <a href={hrefFor('api-reference')} onClick={e=>{e.preventDefault();navigate('api-reference')}}>API</a>
+       <a href={hrefFor('examples-pytorch-composition')} onClick={e=>{e.preventDefault();navigate('examples-pytorch-composition')}}>Tutorials</a>
+       <a href="https://github.com/dhakalnirajan/axonweave" target="_blank" rel="noreferrer">GitHub</a>
+     </nav>
+     <button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="Search documentation (Shift+/)"><Search size={15}/><span>Search documentation...</span><kbd>Shift+/</kbd></button>
+     <div className="top-actions">
+       <div className="learn-menu"><button className="learn-trigger version-trigger">{version} <span>▾</span></button><div className="learn-dropdown version-dropdown">{VERSIONS.map(v=><button key={v} className={v===version?'version-item active':'version-item'} onClick={()=>setVersion(v)}>{v}</button>)}</div></div>
+       <button className="icon-button" onClick={()=>setDark(!dark)} aria-label="Toggle theme">{dark?<Sun size={19}/>:<Moon size={19}/>}</button>
+     </div>
    </header>
-   <div className="shell">
+   <div className="shell" style={{'--sidebar-w':`${sidebarWidth}px`} as React.CSSProperties}>
     <aside className={`sidebar ${mobile?'open':''}`}>
       <div className="sidebar-header">Documentation <button className="icon-button close-mobile" onClick={()=>setMobile(false)}><X size={18}/></button></div>
       {sections.map(section=><div className="nav-section" key={section}><div className="nav-label">{section}</div>{pages.filter(p=>p.section===section).map(p=><a key={p.slug} className={slug===p.slug?'active':''} href={hrefFor(p.slug)} onClick={e=>{e.preventDefault();navigate(p.slug)}}>{p.label}</a>)}</div>)}
     </aside>
     <main id="main" className="content">
-      {page?<><div className="breadcrumbs">Docs <span>/</span> {page.label}</div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer/><div className="page-nav"><span>AxonWeave Documentation</span><button className="text-button" onClick={()=>navigate('getting-started')}>Continue →</button></div></>:<NotFound navigate={navigate}/>} 
+      {page?<><div className="breadcrumbs">Docs <span>/</span> {page.label}</div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer/><div className="page-nav"><span>AxonWeave Documentation</span><button className="text-button" onClick={()=>navigate('getting-started')}>Continue →</button></div></>:<NotFound navigate={navigate}/>}
     </main>
     {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc/></aside>}
    </div>
+   <div className="sidebar-resizer" onMouseDown={e=>{dragRef.current={startX:e.clientX,startW:sidebarWidth};document.body.classList.add('resizing')}} role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabIndex={0}/>
    <footer><span>AxonWeave · Apache-2.0 software</span><span><a href={hrefFor('privacy')} onClick={e=>{e.preventDefault();navigate('privacy')}}>Privacy</a> · <a href={hrefFor('terms')} onClick={e=>{e.preventDefault();navigate('terms')}}>Terms</a></span></footer>
    <CookieConsent/>
    {searchOpen&&<SearchDialog pages={pages} onClose={()=>setSearchOpen(false)} onGo={navigate}/>}
   </div></>
 }
 
-function Toc(){const [items,setItems]=useState<{id:string,text:string,level:number}[]>([]);useEffect(()=>{const hs=[...document.querySelectorAll('article h2,article h3')];const out=hs.map((h,i)=>{const id=`section-${i}-${(h.textContent||'').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;h.id=id;return{id,text:h.textContent||'',level:h.tagName==='H2'?2:3}});setItems(out)},[]);return <nav>{items.map(x=><a className={x.level===3?'sub':''} href={`#${x.id}`} key={x.id}>{x.text}</a>)}</nav>}
+function Toc(){
+ const [items,setItems]=useState<{id:string,text:string,level:number}[]>([]);
+ const [active,setActive]=useState<string>('');
+ useEffect(()=>{
+   const hs=[...document.querySelectorAll('article h2,article h3')];
+   const out=hs.map((h,i)=>{const id=`section-${i}-${(h.textContent||'').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;h.id=id;return{id,text:h.textContent||'',level:h.tagName==='H2'?2:3}});
+   setItems(out);
+   if(!out.length)return;
+   const obs=new IntersectionObserver(entries=>{
+     const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);
+     if(visible[0])setActive(visible[0].target.id);
+   },{rootMargin:'-64px 0px -70% 0px'});
+   out.forEach(it=>{const el=document.getElementById(it.id);if(el)obs.observe(el)});
+   return()=>obs.disconnect();
+ },[]);
+ return <nav>{items.map(x=><a className={x.level===3?'sub':''+(active===x.id?' active':'')} href={`#${x.id}`} key={x.id}><ChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
+}
 function NotFound({navigate}:{navigate:(s:string)=>void}){return <div className="not-found"><p className="eyebrow">404</p><h1>Page not found</h1><p>The requested documentation page does not exist.</p><button className="primary" onClick={()=>navigate('index')}>Return to documentation</button></div>}
 function SearchDialog({pages,onClose,onGo}:{pages:Page[],onClose:()=>void,onGo:(s:string)=>void}){const [q,setQ]=useState('');const results=pages.filter(p=>(p.label+' '+p.source).toLowerCase().includes(q.toLowerCase())).slice(0,8);return <div className="overlay" onMouseDown={onClose}><div className="search-dialog" onMouseDown={e=>e.stopPropagation()}><div className="search-head"><Search size={18}/><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="Search documentation"/><button className="icon-button" onClick={onClose}><X size={18}/></button></div>{results.map(r=><button className="search-result" key={r.slug} onClick={()=>{onGo(r.slug);onClose()}}><strong>{r.label}</strong><span>{r.section}</span></button>)}</div></div>}
 function CookieConsent(){const [show,setShow]=useState(localStorage.getItem('axonweave-cookie')!=='accepted');if(!show)return null;return <div className="cookie"><div><strong>Privacy choices</strong><p>This documentation does not require analytics cookies. Optional analytics, if enabled by a deployment, should be disclosed in the Privacy Policy.</p></div><button className="primary" onClick={()=>{localStorage.setItem('axonweave-cookie','accepted');setShow(false)}}>Accept</button></div>}
