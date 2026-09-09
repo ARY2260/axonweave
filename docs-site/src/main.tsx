@@ -123,13 +123,13 @@ function CodeEnhancer({slug}:{slug:string}){
        chip.textContent=lang;
        pre.appendChild(chip);
      }
-     // Line-number gutter for long Python blocks (>= 8 lines).
+     // Line-number gutter for long Python blocks (>= 8 lines). The rail is
+     // added to the wrapper (outside the scrolling pre) so it stays pinned
+     // while the code scrolls horizontally.
+     let hasGutter=false;
      if(lang==='python' && codeEl){
        const lines=(codeEl.textContent||'').replace(/\n$/,'').split('\n').length;
-       if(lines>=8){
-         codeEl.classList.add('ln-gutter');
-         codeEl.style.setProperty('--ln-count',String(lines));
-       }
+       hasGutter=lines>=8;
      }
      const button=document.createElement('button'); button.className='copy-button'; button.setAttribute('aria-label','Copy code'); button.innerHTML='<span class="copy-label">Copy</span>';
      button.onclick=async()=>{
@@ -141,10 +141,21 @@ function CodeEnhancer({slug}:{slug:string}){
      };
      pre.appendChild(button);
      // Horizontal-scroll hint for blocks wider than their container.
-     const wrap=document.createElement('div'); wrap.className='pre-wrap';
+     const wrap=document.createElement('div'); wrap.className='pre-wrap'+(hasGutter?' has-gutter':'');
      pre.replaceWith(wrap); wrap.appendChild(pre);
      const hint=document.createElement('span'); hint.className='scroll-hint'; hint.setAttribute('aria-hidden','true'); hint.textContent='scroll →';
      wrap.appendChild(hint);
+     if(hasGutter){
+       const rail=document.createElement('span');
+       rail.className='ln-rail';
+       rail.setAttribute('aria-hidden','true');
+       rail.textContent='1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40';
+       wrap.appendChild(rail);
+       // Sync rail height to the code block's rendered height.
+       const sync=()=>{rail.style.height=pre.scrollHeight+'px'};
+       sync();
+       if(typeof ResizeObserver!=='undefined')new ResizeObserver(sync).observe(pre);
+     }
      const update=()=>hint.classList.toggle('visible', pre.scrollWidth > pre.clientWidth + 4);
      update();
      // Hide the hint permanently once the user scrolls the block.
