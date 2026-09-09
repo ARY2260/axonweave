@@ -45,6 +45,7 @@ import checkpointsMd from '../content/checkpoints.md?raw';
 import devicesMd from '../content/devices.md?raw';
 import faqMd from '../content/faq.md?raw';
 import limitationsMd from '../content/limitations.md?raw';
+import errorsMd from '../content/errors.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
@@ -81,6 +82,7 @@ const pages: Page[] = [
  {slug:'faq',label:'FAQ',source:faqMd,section:'Project'},
  {slug:'privacy',label:'Privacy Policy',source:privacyMd,section:'Project'},
  {slug:'terms',label:'Terms & Conditions',source:termsMd,section:'Project'},
+ {slug:'errors',label:'Errors & Diagnostics',source:errorsMd,section:'Reference'},
  {slug:'troubleshooting',label:'Troubleshooting',source:troubleshootingMd,section:'Project'},
 ];
 
