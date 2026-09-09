@@ -234,7 +234,7 @@ function App(){
       {sections.map(section=><div className="nav-section" key={section}><div className="nav-label">{section}</div>{pages.filter(p=>p.section===section).map(p=><a key={p.slug} className={slug===p.slug?'active':''} href={hrefFor(p.slug)} onClick={e=>{e.preventDefault();navigate(p.slug)}}>{p.label}</a>)}</div>)}
     </aside>
     <main id="main" className="content">
-      {page?<><div className="breadcrumbs">Docs <span>/</span> {page.label}</div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
+      {page?<><nav className="breadcrumbs" aria-label="Breadcrumb"><a className="crumb-link" href={hrefFor('index')} onClick={e=>{e.preventDefault();navigate('index')}}>Docs</a><span>/</span><span className="crumb-here">{page.label}</span></nav><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
     </main>
     {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc/></aside>}
    </div>
