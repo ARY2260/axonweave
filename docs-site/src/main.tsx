@@ -32,31 +32,51 @@ import encodersMd from '../content/encoders.md?raw';
 import dynamicsMd from '../content/dynamics.md?raw';
 import learningMd from '../content/learning.md?raw';
 import experimentMd from '../content/experiment.md?raw';
+import installationMd from '../content/installation.md?raw';
+import coreConceptsMd from '../content/core-concepts.md?raw';
+import brainMd from '../content/brain.md?raw';
+import connectomeMd from '../content/connectome.md?raw';
+import signalsMd from '../content/signals.md?raw';
+import tasksMd from '../content/tasks.md?raw';
+import trainingMd from '../content/training.md?raw';
+import checkpointsMd from '../content/checkpoints.md?raw';
+import devicesMd from '../content/devices.md?raw';
+import faqMd from '../content/faq.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
- {slug:'index',label:'Overview',source:indexMd,section:'Start'},
- {slug:'getting-started',label:'Getting Started',source:gettingStartedMd,section:'Start'},
- {slug:'architecture',label:'Architecture',source:architectureMd,section:'Core'},
- {slug:'framework',label:'Framework API',source:frameworkMd,section:'Core'},
- {slug:'backends',label:'Backends & Devices',source:backendsMd,section:'Core'},
- {slug:'biology',label:'Biological Model',source:biologyMd,section:'Science'},
- {slug:'dynamics',label:'Neuron Dynamics',source:dynamicsMd,section:'Science'},
- {slug:'interoperability',label:'Interoperability',source:interoperabilityMd,section:'Science'},
- {slug:'encoders',label:'Encoders & Decoders',source:encodersMd,section:'Interfaces'},
- {slug:'learning',label:'Learning & Plasticity',source:learningMd,section:'Interfaces'},
- {slug:'experiment',label:'Experiments',source:experimentMd,section:'Interfaces'},
- {slug:'distribution',label:'Substrate Distribution',source:distributionMd,section:'Operations'},
- {slug:'scientific-reference',label:'Scientific Reference',source:scientificMd,section:'Science'},
- {slug:'examples-pytorch-composition',label:'Example: PyTorch Composition',source:examplesPytorchCompositionMd,section:'Examples'},
- {slug:'examples-custom-policy',label:'Example: Custom Signal Policy',source:examplesCustomPolicyMd,section:'Examples'},
- {slug:'release-engineering',label:'Release Engineering',source:releaseMd,section:'Operations'},
- {slug:'api-reference',label:'API Reference',source:apiMd,section:'Reference'},
- {slug:'troubleshooting',label:'Troubleshooting',source:troubleshootingMd,section:'Reference'},
+ {slug:'index',label:'Overview',source:indexMd,section:'Overview'},
+ {slug:'installation',label:'Installation',source:installationMd,section:'Getting Started'},
+ {slug:'getting-started',label:'Getting Started',source:gettingStartedMd,section:'Getting Started'},
+ {slug:'distribution',label:'Substrates',source:distributionMd,section:'Getting Started'},
+ {slug:'core-concepts',label:'Core Concepts',source:coreConceptsMd,section:'Concepts'},
+ {slug:'brain',label:'Biological Brain',source:brainMd,section:'Concepts'},
+ {slug:'connectome',label:'Connectome',source:connectomeMd,section:'Concepts'},
+ {slug:'dynamics',label:'Neuron Dynamics',source:dynamicsMd,section:'Concepts'},
+ {slug:'signals',label:'Signals & Receptors',source:signalsMd,section:'Concepts'},
+ {slug:'encoders',label:'Encoders & Decoders',source:encodersMd,section:'Concepts'},
+ {slug:'tasks',label:'Tasks',source:tasksMd,section:'Concepts'},
+ {slug:'training',label:'Training',source:trainingMd,section:'Guides'},
+ {slug:'learning',label:'Learning & Plasticity',source:learningMd,section:'Guides'},
+ {slug:'experiment',label:'Experiments & Agents',source:experimentMd,section:'Guides'},
+ {slug:'checkpoints',label:'Checkpoints',source:checkpointsMd,section:'Guides'},
+ {slug:'examples-pytorch-composition',label:'Custom Layer Composition',source:examplesPytorchCompositionMd,section:'Guides'},
+ {slug:'examples-custom-policy',label:'Custom Signal Policy',source:examplesCustomPolicyMd,section:'Guides'},
+ {slug:'framework',label:'Framework API',source:frameworkMd,section:'Reference'},
+ {slug:'backends',label:'Backends',source:backendsMd,section:'Reference'},
+ {slug:'devices',label:'Device Support',source:devicesMd,section:'Reference'},
  {slug:'configuration',label:'Configuration',source:configurationMd,section:'Reference'},
- {slug:'contributing',label:'Contributing',source:contributingMd,section:'Project'},
+ {slug:'api-reference',label:'API Reference',source:apiMd,section:'Reference'},
+ {slug:'biology',label:'Biological Model',source:biologyMd,section:'Science'},
+ {slug:'scientific-reference',label:'Scientific Reference',source:scientificMd,section:'Science'},
+ {slug:'interoperability',label:'Interoperability',source:interoperabilityMd,section:'Science'},
+ {slug:'architecture',label:'Architecture',source:architectureMd,section:'Development'},
+ {slug:'release-engineering',label:'Release Process',source:releaseMd,section:'Development'},
+ {slug:'contributing',label:'Contributing',source:contributingMd,section:'Development'},
+ {slug:'faq',label:'FAQ',source:faqMd,section:'Project'},
  {slug:'privacy',label:'Privacy Policy',source:privacyMd,section:'Project'},
  {slug:'terms',label:'Terms & Conditions',source:termsMd,section:'Project'},
+ {slug:'troubleshooting',label:'Troubleshooting',source:troubleshootingMd,section:'Project'},
 ];
 
 marked.setOptions({gfm:true, breaks:false});
@@ -131,9 +151,9 @@ function App(){
      <button className="icon-button mobile-menu" onClick={()=>setMobile(!mobile)} aria-label="Open navigation"><Menu size={20}/></button>
      <a className="brand" href="/" onClick={e=>{e.preventDefault();navigate('index')}}><img src={`${BASE}logo.svg`} alt="AxonWeave"/><span>AxonWeave</span></a>
      <nav className="topnav">
-       <a href={hrefFor('getting-started')} onClick={e=>{e.preventDefault();navigate('getting-started')}}>Learn</a>
+       <a href={hrefFor('core-concepts')} onClick={e=>{e.preventDefault();navigate('core-concepts')}}>Learn</a>
        <a href={hrefFor('api-reference')} onClick={e=>{e.preventDefault();navigate('api-reference')}}>API</a>
-       <a href={hrefFor('examples-pytorch-composition')} onClick={e=>{e.preventDefault();navigate('examples-pytorch-composition')}}>Tutorials</a>
+       <a href={hrefFor('tasks')} onClick={e=>{e.preventDefault();navigate('tasks')}}>Tutorials</a>
        <a href="https://github.com/dhakalnirajan/axonweave" target="_blank" rel="noreferrer">GitHub</a>
      </nav>
      <button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="Search documentation (Shift+/)"><Search size={15}/><span>Search documentation...</span><kbd>Shift+/</kbd></button>
@@ -174,7 +194,7 @@ function Toc(){
    out.forEach(it=>{const el=document.getElementById(it.id);if(el)obs.observe(el)});
    return()=>obs.disconnect();
  },[]);
- return <nav>{items.map(x=><a className={x.level===3?'sub':''+(active===x.id?' active':'')} href={`#${x.id}`} key={x.id}><ChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
+ return <nav>{items.map(x=><a className={(x.level===3?'sub ':'')+(active===x.id?'active':'')} href={`#${x.id}`} key={x.id}><ChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
 }
 function NotFound({navigate}:{navigate:(s:string)=>void}){return <div className="not-found"><p className="eyebrow">404</p><h1>Page not found</h1><p>The requested documentation page does not exist.</p><button className="primary" onClick={()=>navigate('index')}>Return to documentation</button></div>}
 function SearchDialog({pages,onClose,onGo}:{pages:Page[],onClose:()=>void,onGo:(s:string)=>void}){const [q,setQ]=useState('');const results=pages.filter(p=>(p.label+' '+p.source).toLowerCase().includes(q.toLowerCase())).slice(0,8);return <div className="overlay" onMouseDown={onClose}><div className="search-dialog" onMouseDown={e=>e.stopPropagation()}><div className="search-head"><Search size={18}/><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="Search documentation"/><button className="icon-button" onClick={onClose}><X size={18}/></button></div>{results.map(r=><button className="search-result" key={r.slug} onClick={()=>{onGo(r.slug);onClose()}}><strong>{r.label}</strong><span>{r.section}</span></button>)}</div></div>}
