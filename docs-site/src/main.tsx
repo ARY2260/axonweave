@@ -8,7 +8,7 @@ import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-toml';
 import 'prismjs/components/prism-powershell';
-import { Menu, Moon, Sun, Search, X, ChevronRight } from 'lucide-react';
+import { Menu, Moon, Sun, Search, X, ChevronRight, ThumbsUp, ThumbsDown, ChevronDown } from 'lucide-react';
 import './style.css';
 
 import indexMd from '../content/index.md?raw';
@@ -234,7 +234,7 @@ function App(){
       {sections.map(section=><div className="nav-section" key={section}><div className="nav-label">{section}</div>{pages.filter(p=>p.section===section).map(p=><a key={p.slug} className={slug===p.slug?'active':''} href={hrefFor(p.slug)} onClick={e=>{e.preventDefault();navigate(p.slug)}}>{p.label}</a>)}</div>)}
     </aside>
     <main id="main" className="content">
-      {page?<><nav className="breadcrumbs" aria-label="Breadcrumb"><a className="crumb-link" href={hrefFor('index')} onClick={e=>{e.preventDefault();navigate('index')}}>Docs</a><span>/</span><span className="crumb-here">{page.label}</span></nav><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
+      {page?<><nav className="breadcrumbs" aria-label="Breadcrumb"><a className="crumb-link" href={hrefFor('index')} onClick={e=>{e.preventDefault();navigate('index')}}>Docs</a><span>/</span><span className="crumb-here">{page.label}</span></nav><div className="title-row"><h1 style={{display:'none'}}/><div className="title-row-spacer"/><FeedbackWidget slug={slug}/></div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
     </main>
     {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc/></aside>}
    </div>
@@ -243,6 +243,21 @@ function App(){
    <CookieConsent/>
    {searchOpen&&<SearchDialog pages={pages} onClose={()=>setSearchOpen(false)} onGo={navigate}/>}
   </div></>
+}
+
+function FeedbackWidget({slug}:{slug:string}){
+ // 'Was this helpful?' row, TF-style. Stored per page in localStorage;
+ // no analytics endpoint is contacted (see Privacy Policy).
+ const key=`axonweave-feedback-${slug}`;
+ const [vote,setVote]=useState<string|null>(()=>localStorage.getItem(key));
+ const cast=(v:'up'|'down')=>{localStorage.setItem(key,v);setVote(v)};
+ return <div className="feedback" role="group" aria-label="Page feedback">
+  {vote
+   ? <span className="feedback-thanks">Thanks for your feedback.</span>
+   : <><span className="feedback-label">Was this helpful?</span>
+      <button className="feedback-button" onClick={()=>cast('up')} aria-label="Yes, this page was helpful"><ThumbsUp size={15}/></button>
+      <button className="feedback-button" onClick={()=>cast('down')} aria-label="No, this page was not helpful"><ThumbsDown size={15}/></button></>}
+ </div>;
 }
 
 function Toc(){
