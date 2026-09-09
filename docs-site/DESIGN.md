@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: AxonWeave Docs
-description: Design tokens for the AxonWeave documentation site. Dark theme is default; light theme is the inverse. Typography uses IBM Plex Sans for UI/body/headings and Iosevka Charon Mono for code, loaded via Google Fonts with system-stack fallbacks. Tokens map 1:1 to CSS custom properties in src/style.css.
+description: Design tokens for the AxonWeave documentation site. Dark theme is default; light theme is the inverse. Typography uses IBM Plex Sans for UI/body/headings; code blocks use SF Mono on Apple devices with Iosevka Charon Mono (Google Fonts) as the cross-platform webfont, all with system-stack fallbacks. Tokens map 1:1 to CSS custom properties in src/style.css.
 colors:
   primary: "#b7e2ef"
   bg: "#121212"
@@ -55,7 +55,7 @@ typography:
     fontWeight: 700
     letterSpacing: "0.1em"
   code:
-    fontFamily: Iosevka Charon Mono
+    fontFamily: SF Mono / Iosevka Charon Mono
     fontSize: 13px
 rounded:
   sm: 3px
@@ -166,7 +166,7 @@ Dark theme (default) is normative; light theme tokens are prefixed `light-` and 
 
 ## Typography
 
-Typography uses two technical typefaces loaded via Google Fonts (`display=swap`, preconnected): **IBM Plex Sans** (400/500/600/700 + italic 400) for UI, body and headings, and **Iosevka Charon Mono** (400/500) for code, inline code, kbd and code-block chrome. Both declare full system-stack fallbacks (`--font-ui` / `--font-code` in `src/style.css`), so pages render immediately in the system font and upgrade when the webfonts arrive — no FOUC, no flash of unstyled text. Code uses `letter-spacing: -0.015em` and normal ligatures. API-reference tables use `font-variant-numeric: tabular-nums lining-nums` so numeric columns align. Headings use tight negative tracking. `label-caps` is for sidebar group labels and TOC headers only.
+Typography uses two technical typefaces for UI and code, both with full system-stack fallbacks (`--font-ui` / `--font-code` in `src/style.css`): **IBM Plex Sans** (400/500/600/700 + italic 400) for UI, body and headings, and for code **SF Mono** on Apple platforms — first in the `--font-code` stack — with **Iosevka Charon Mono** (Google Fonts, 400/500, `display=swap`, preconnected) as the cross-platform webfont and `SFMono-Regular`/`Menlo`/`Consolas` behind it. Pages render immediately in the fallback font and upgrade when webfonts arrive — no FOUC. Code uses `letter-spacing: -0.015em` and normal ligatures. Syntax highlighting is provided by Prism with grammars for Python, Bash, TOML and PowerShell, re-highlighted on every page navigation. API-reference tables use `font-variant-numeric: tabular-nums lining-nums` so numeric columns align. Headings use tight negative tracking. `label-caps` is for sidebar group labels and TOC headers only.
 
 ## Layout
 
