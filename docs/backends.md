@@ -47,6 +47,8 @@ A backend adapter must provide:
 - dtype policy;
 - actionable capability errors.
 
-## Future/optional JAX integration
+## JAX integration
 
-JAX support is an explicit optional target rather than a claim that every JAX sparse primitive is equivalent across accelerators. A JAX adapter should be added only with numerical tests for the supported sparse path and device set.
+An experimental adapter exists (`axonweave.jax`): `ConnectomeLayer`, `BrainModel`, `ConnectomeBlock`, `Input` and `Readout` wrapping JAX's native sparse (BCOO) and device APIs. It is a written, unverified implementation — the supported sparse path still needs numerical equivalence tests on the suite's CI runners before it can be claimed stable.
+
+JAX support remains an explicit optional target rather than a claim that every JAX sparse primitive is equivalent across accelerators.

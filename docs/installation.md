@@ -16,6 +16,17 @@ pip install axonweave
 
 This includes NumPy, SciPy, PyArrow, requests and pydantic — enough to load substrates and run the NumPy reference path.
 
+## Compiled compute core
+
+Wheels for Linux, macOS and Windows ship the compiled Rust core (`axonweave._native`) built from `rust/` — installing a wheel never requires a Rust toolchain. Source and editable installs without a built extension run an identical NumPy/SciPy reference instead. Either way the public API behaves the same; check which path is active with:
+
+```python
+import axonweave
+print(axonweave.load("male-cns:v1.0").info().native_backend)  # "0.1.0" (extension) or "python-fallback"
+```
+
+See [Rust Core](rust-core.md) for the dispatch contract and [Backends](backends.md) for backend coverage.
+
 ## Optional framework extras
 
 ```bash

@@ -4,7 +4,7 @@
 
 ### NumPy/SciPy
 
-Reference CPU implementation. All compute first routes through `native.py`, which dispatches either to the compiled Rust/PyO3 extension or an identical NumPy/SciPy reference — public results are the same either way. Useful for correctness tests, inspection and small graph experiments.
+Reference CPU implementation. All compute first routes through `native.py`, which dispatches either to the compiled Rust/PyO3 extension or an identical NumPy/SciPy reference — public results are the same either way, and both paths are first-class. Useful for correctness tests, inspection and small graph experiments.
 
 ### PyTorch
 
@@ -47,6 +47,8 @@ A backend adapter must provide:
 - dtype policy;
 - actionable capability errors.
 
-## Future/optional JAX integration
+## JAX integration
 
-JAX support is an explicit optional target rather than a claim that every JAX sparse primitive is equivalent across accelerators. A JAX adapter should be added only with numerical tests for the supported sparse path and device set.
+An experimental adapter exists (`axonweave.jax`): `ConnectomeLayer`, `BrainModel`, `ConnectomeBlock`, `Input` and `Readout` wrapping JAX's native sparse (BCOO) and device APIs. It is a written, unverified implementation — the supported sparse path still needs numerical equivalence tests on the suite's CI runners before it can be claimed stable.
+
+JAX support remains an explicit optional target rather than a claim that every JAX sparse primitive is equivalent across accelerators.

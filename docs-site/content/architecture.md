@@ -43,7 +43,7 @@ The exact tensor shapes are application-defined; the AxonWeave layer requires it
 
 ## Rust core
 
-All low-level compute now routes through a single dispatch layer (`native.py`) that either calls the compiled PyO3 extension (`axonweave._native`, built from `rust/`) or an identical NumPy/SciPy reference — public results are the same either way, proven by `tests/test_native_runtime.py` in CI. The Rust core is a compute substrate, not a second runtime or a brain simulation. See [Rust Core](rust-core.md).
+Every computationally meaningful primitive now routes through a single dispatch layer (`native.py`) that either calls the compiled PyO3 extension (`axonweave._native`, built from `rust/`) or an identical NumPy/SciPy reference. Public results are the same either way; equivalence is proven in CI (`tests/test_native_runtime.py`, `.github/workflows/rust.yml`). The Rust core is a compute substrate, not a second runtime or a brain simulation. See [Rust Core](rust-core.md).
 
 ## Provenance
 

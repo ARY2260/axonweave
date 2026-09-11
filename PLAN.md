@@ -29,11 +29,11 @@ what is written vs CI-verified), `[ ]` not started.
 ## Phase 2 — Biological model core
 
 - [x] Typed neuron metadata API.
-- [ ] ROI/body-ID selectors (`brain.neurons` collection).
-- [ ] Receptor model interface.
+- [x] ROI/body-ID selectors (`brain.neurons` collection).
+- [x] Receptor model interface (`AMPA`, `GABA`, `NMDA (Mg-block)`, `dopamine`; `ReceptorPolicy`).
 - [x] Neuron-type dynamics interface (`DynamicsPolicy` overrides per type).
-- [ ] Synaptic delay engine.
-- [ ] Synapse-level neurotransmitter model.
+- [x] Synaptic delay engine (`DelayRing` / `NumpyDelayBuffer`, `SynapticDelayEngine`, fixed/uniform/normal delay classes).
+- [x] Synapse-level neurotransmitter model (`SynapseNeurotransmitterModel` with vesicle release and current generation).
 - [x] Plasticity API (`STDP`, `DopamineSTDP` three-factor rules).
 - [x] Deterministic simulation mode (seeded state, deterministic step).
 - [ ] Scientific validation fixtures.
@@ -43,7 +43,7 @@ what is written vs CI-verified), `[ ]` not started.
 - [x] PyTorch.
 - [x] TensorFlow/Keras.
 - [x] NumPy/SciPy.
-- [ ] JAX adapter where sparse semantics are stable and useful.
+- [~] JAX adapter (`axonweave.jax` written: layer + high-level block; numerical/device CI verification pending).
 - [x] Cross-backend numerical equivalence tests (NumPy = PyTorch = Keras).
 - [ ] PyTorch CUDA/MPS/XPU test lanes where runners are available.
 - [ ] TensorFlow GPU/TPU test lanes where runners are available.

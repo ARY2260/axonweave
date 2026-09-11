@@ -43,7 +43,7 @@ info.n_edges          # 25600000 (approximate)
 info.substrate_id     # "male-cns:v1.0"
 info.fingerprint      # 64-char graph identity hash
 info.has_annotations  # True / False per installed attachments
-info.native_backend   # "rust" when the native core is available
+info.native_backend   # "0.1.0" (compiled Rust core) or "python-fallback"
 
 print(info.summary())
 # Substrate:   male-cns:v1.0
@@ -51,7 +51,7 @@ print(info.summary())
 # Neurons:     166,700
 # Connections: 25,600,000
 # Annotations: yes  Neurotransmitters: yes  Receptors: no
-# Native core: rust
+# Native core: 0.1.0
 ```
 
 `brain.capabilities()` returns the same facts as a machine-readable dict — backends, facades, dynamics and learning rules available on this instance — for use in experiment metadata and notebooks.

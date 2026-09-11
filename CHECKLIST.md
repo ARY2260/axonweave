@@ -56,6 +56,12 @@ Status legend:
 - [x] `AXW006` actionable error when torch is missing for `brain.task`.
 - [x] Implementation gap analysis (`docs/development/IMPLEMENTATION_GAP.md`).
 
+### Signals, receptors and delays
+- [x] Synapse-level neurotransmitter model (`signals/synapse.py`): `SynapseNeurotransmitterModel` with vesicle-release step and neurotransmitter current generation; vesicle/current kernels in the native core (`vesicle_release_step`, `nt_currents`).
+- [x] Receptor models (`receptors/__init__.py`): `AMPA`, `GABA`, `NMDA` (voltage-dependent Mg block), `dopamine` (modulatory gain/sign) via `receptor_step` plus a `ReceptorPolicy`.
+- [x] Synaptic delay engine (`delays/__init__.py` + `propagation.py`): `SynapticDelayEngine` with `UniformDelay`, `FixedDelay`, `NormalDelay`; ring-buffer semantics in the native core (`DelayRing` pyclass / `NumpyDelayBuffer` reference) plus the stateless `apply_delays` propagation path.
+- [x] Tests: `tests/test_signals.py`, plus delay-ring/receptor/surrogate coverage in `tests/test_native_runtime.py`.
+
 ### Documentation site (design-spec UI)
 - [x] Structural tabs: Learn / API / Tutorials / GitHub.
 - [x] Visible search trigger with `Shift+/` global shortcut and Esc to close.
@@ -98,6 +104,7 @@ the authoritative validation environment:
 - [ ] Torch high-level API: `BrainModel`, `ConnectomeBlock` fit/composition/training-mode tests (`tests/test_torch_brain_model.py`).
 - [ ] `brain.task` happy path and `brain.layer` alias (torch-dependent).
 - [ ] Keras high-level adapter: `BrainLayer`, `KerasConnectomeBlock`, `brain.keras_task(...)` with 13 authored tests (`tests/test_keras_brain_layer.py`, tensorflow-dependent).
+- [ ] JAX adapter (`axonweave.jax`): `ConnectomeLayer`, `BrainModel`, `ConnectomeBlock`, `Input`, `Readout` — written, no local JAX installation to test; numerical/device CI verification pending.
 - [ ] Rust/PyO3 build and tests on CI runners.
 - [ ] Wheel builds across the OS × Python matrix.
 - [ ] GitHub Pages deployment job (also blocked on repo visibility/Pages plan).
@@ -109,11 +116,10 @@ the authoritative validation environment:
 - [ ] GPU/TPU self-hosted or vendor runners; sparse-kernel tests on accelerators.
 - [ ] Validate exact upstream schemas and release fixtures (incl. real annotation column names for `by_type`/`by_region` alias table).
 - [ ] Replace in-memory graph assembly with disk-backed/streaming build.
-- [ ] Receptor model interface, synaptic delay engine, synapse-level neurotransmitter model.
 - [ ] Portable `.awb` substrate pack/unpack.
 - [ ] API-doc generation from Python docstrings.
 - [ ] Versioned documentation.
-- [ ] Keras high-level adapter (written, CI-verified pending — see WRITTEN section); JAX adapter.
+- [ ] Keras high-level adapter (written, CI-verified pending — see WRITTEN section).
 - [ ] Surrogate-gradient training through spiking dynamics.
 - [ ] Rust streaming graph builder; parallel construction; benchmark suite.
 - [ ] Configure GitHub OIDC trusted publishing on PyPI.

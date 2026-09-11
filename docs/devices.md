@@ -8,7 +8,7 @@ AxonWeave does not maintain its own device runtime. Device placement, transfer a
 
 - **PyTorch** — `torch.device`: CPU, CUDA, MPS, XPU, as supported by the installed PyTorch release.
 - **TensorFlow** — native TensorFlow placement: CPU, GPU, TPU where available.
-- **JAX** — native JAX device semantics (planned adapter).
+- **JAX** — adapter exists (`axonweave.jax`); device placement follows native JAX device semantics. Behavior is experimental and pending verification — see the note under the capability table.
 - **NumPy/SciPy** — CPU reference path only.
 
 ## Capability table
@@ -18,9 +18,13 @@ AxonWeave does not maintain its own device runtime. Device placement, transfer a
 | NumPy/SciPy (reference) | Yes | — | — | — | — | N/A (CPU only) |
 | PyTorch | Yes | Framework-dependent | Framework-dependent | Framework-dependent | — | `torch.sparse.mm` support varies by device/dtype |
 | TensorFlow/Keras | Yes | Framework-dependent | — | — | Framework-dependent | `tf.sparse.sparse_dense_matmul` support varies |
-| JAX | Planned | Planned | — | — | Planned | — |
+| JAX | Adapter written; unverified | Planned | — | — | Planned | — |
 
 "Framework-dependent" means: the operation may work, but AxonWeave does not guarantee it. Test your specific device/operation/dtype combination.
+
+:::DOC-WARN
+The JAX adapter (`axonweave.jax`) exists but is not yet covered by numerical tests on the CI matrix. CPU and accelerator rows above are device claims that remain **pending verification** — treat the adapter as experimental until the equivalence suite covers it.
+:::
 
 ## Explicit failure, never silent fallback
 

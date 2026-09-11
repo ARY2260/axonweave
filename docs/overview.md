@@ -99,7 +99,9 @@ activity = layer(np.zeros((1, brain.n_neurons), dtype=np.float32))
 | PyTorch / Keras / NumPy layers | Stable | [Backends](backends.md) |
 | Neuron dynamics (LIF, adaptive LIF, rate) | Experimental | [Dynamics](dynamics.md) |
 | Encoders / decoders | Experimental | [Encoders](encoders.md) |
+| Readout heads (classification/regression/token/action) | Experimental | [Readouts](readouts.md) |
 | Plasticity (STDP, dopamine-modulated) | Experimental | [Learning](learning.md) |
+| Rust compute core (compiled extension vs NumPy fallback) | Experimental | [Rust Core](rust-core.md) |
 | Supervised task API (`brain.task`) | Experimental | [Framework API](framework.md) |
 | Agent/environment API (`brain.agent`) | Experimental | [Experiments](experiment.md) |
 | Checkpoints (substrate identity metadata) | Experimental | [Experiments](experiment.md) |
@@ -125,7 +127,7 @@ See [Scientific Reference](scientific-reference.md).
 | NumPy/SciPy | included | Reference implementation |
 | PyTorch | `pip install "axonweave[torch]"` | Stable layer; experimental high-level API |
 | TensorFlow/Keras | `pip install "axonweave[tensorflow]"` | Stable layer |
-| JAX | `pip install "axonweave[jax]"` | Planned |
+| JAX | `pip install "axonweave[jax]"` | Experimental (adapter written; verification pending) |
 
 See [Backends](backends.md).
 
@@ -135,7 +137,7 @@ See [Backends](backends.md).
 |---|---|---|
 | Frozen connectome | encoders/readouts only | Experimental |
 | Trainable synaptic weights (topology preserved) | existing edges | Experimental |
-| Trainable neuron parameters | τ, thresholds, gain | Planned |
+| Trainable neuron parameters | τ, thresholds, gain | Experimental |
 | Local plasticity (STDP, three-factor) | synapses, locally | Experimental |
 | Hybrid | backprop + plasticity | Experimental |
 
