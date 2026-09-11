@@ -69,7 +69,7 @@ pub fn embed_lookup<'py>(
     py: Python<'py>,
     ids: Bound<'py, PyArray1<i64>>,
     embedding: Bound<'py, PyArray1<f32>>,
-    vocab: usize,
+    _vocab: usize,
     dim: usize,
 ) -> PyResult<Bound<'py, PyArray1<f32>>> {
     let ids_ro = ids.readonly();

@@ -10,7 +10,7 @@ pub fn sparse_matmul<'py>(
     indptr: Bound<'py, PyArray1<i64>>,
     x: Bound<'py, PyArray1<f32>>,
     n_rows: usize,
-    n_cols: usize,
+    _n_cols: usize,
 ) -> PyResult<Bound<'py, PyArray1<f32>>> {
     let data_ro = data.readonly();
     let indices_ro = indices.readonly();
@@ -78,7 +78,7 @@ pub fn csr_matmul_2d<'py>(
     indptr: Bound<'py, PyArray1<i64>>,
     x: Bound<'py, PyArray2<f32>>,
     n_rows: usize,
-    n_cols: usize,
+    _n_cols: usize,
 ) -> PyResult<Bound<'py, PyArray1<f32>>> {
     let data_ro = data.readonly();
     let indices_ro = indices.readonly();
@@ -117,7 +117,7 @@ pub fn csr_matmul_2d_transpose<'py>(
     indptr: Bound<'py, PyArray1<i64>>,
     x: Bound<'py, PyArray2<f32>>,
     n_rows: usize,
-    n_cols: usize,
+    _n_cols: usize,
 ) -> PyResult<Bound<'py, PyArray1<f32>>> {
     let data_ro = data.readonly();
     let indices_ro = indices.readonly();
@@ -228,7 +228,7 @@ pub fn csr_submatrix<'py>(
     let csel = cols_ro.as_slice()?;
 
     let n_sel_rows = rsel.len();
-    let n_sel_cols = csel.len();
+    let _n_sel_cols = csel.len();
 
     let result = py.allow_threads(|| {
         let mut row_map = vec![usize::MAX; n_rows];

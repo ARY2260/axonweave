@@ -2,6 +2,9 @@ use numpy::{PyArray1, PyArrayMethods};
 use pyo3::prelude::*;
 
 #[pyfunction]
+#[pyo3(signature = (
+    data, indices, indptr, pre_trace, post_trace, pre_activity, post_activity,
+    a_plus, a_minus, tau_pre, tau_post, dt, reward=None, w_min=None, w_max=None))]
 pub fn stdp_update<'py>(
     py: Python<'py>,
     data: Bound<'py, PyArray1<f32>>,
