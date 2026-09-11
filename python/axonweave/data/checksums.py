@@ -19,8 +19,7 @@ still recorded in the substrate manifest but is not enforced.
 """
 from __future__ import annotations
 
-import base64
-import hashlib
+from .. import native as _native
 from ..errors import DatasetIntegrityError
 
 # Upstream content hashes for male-cns:v1.0, obtained from the GCS object
@@ -100,8 +99,4 @@ def verify_checksum(
 
 def md5_base64_of_file(path) -> str:
     """Compute the base64 MD5 digest of a file (matches GCS x-goog-hash)."""
-    h = hashlib.md5()
-    with open(path, "rb") as f:
-        while chunk := f.read(8 * 1024 * 1024):
-            h.update(chunk)
-    return base64.b64encode(h.digest()).decode("ascii")
+    return _native.md5_base64_of_file(path)

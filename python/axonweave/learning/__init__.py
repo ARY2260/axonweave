@@ -6,6 +6,9 @@ local plasticity rules updated from pre/post activity and reward signals.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
+from .. import native as _native
+
 import numpy as np
 
 
@@ -32,33 +35,14 @@ class STDP:
         ``state`` carries persistent traces. Returns the updated weight data.
         Reward (if given) modulates the update (three-factor rule).
         """
-        decay_pre = np.exp(-dt / self.tau_pre)
-        decay_post = np.exp(-dt / self.tau_post)
-        # Pairwise STDP traces computed BEFORE incorporating the current step.
-        pre_trace_prev = state["pre"].copy()
-        state["pre"] = state["pre"] * decay_pre + pre_activity
-        state["post"] = state["post"] * decay_post + post_activity
-
-        # LTP: pre trace (recent pre-activity) x current post activity.
-        # LTD: current pre activity x post trace (recent post-activity).
-        ltp = self.a_plus * np.outer(post_activity, pre_trace_prev)
-        ltd = self.a_minus * np.outer(state["post"], pre_activity)
-        delta = ltp - ltd
-
+        data, pre_new, post_new = _native.stdp_update(
+            W, state["pre"], state["post"], pre_activity, post_activity,
+            self.a_plus, self.a_minus, self.tau_pre, self.tau_post, dt,
+            reward=reward, w_min=self.w_min, w_max=self.w_max,
+        )
+        state["pre"] = pre_new
+        state["post"] = post_new
         if W is not None and W.nnz:
-            rows = np.repeat(np.arange(W.shape[0]), np.diff(W.indptr))
-            cols = W.indices
-            d = delta[rows, cols]
-            # Three-factor semantics: an explicit reward signal gates the
-            # update (reward-modulated); ``None`` means plain pairwise STDP.
-            if reward is not None:
-                data = W.data + reward * d
-            else:
-                data = W.data + d
-            if self.w_min is not None:
-                data = np.maximum(data, self.w_min)
-            if self.w_max is not None:
-                data = np.minimum(data, self.w_max)
             W.data = data
         return W.data if W is not None else None
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from .. import native as _native
+
 
 class ActionDecoder:
     """Maps readout activity to discrete or continuous motor actions.
@@ -29,10 +31,11 @@ class ActionDecoder:
             raise ApiUsageError(
                 f"AXW010: decoder needs at least {self.actions} readout neurons, got {a.shape[-1]}"
             )
-        vals = a[..., :self.actions]
+        lead = a.shape[:-1]
+        flat = a.reshape(-1, a.shape[-1])
         if self.continuous:
-            return np.clip(vals, self.low, self.high)
-        return np.argmax(vals, axis=-1)
+            return _native.decode_clip(flat, self.actions, self.low, self.high).reshape(*lead, self.actions)
+        return _native.decode_argmax(flat, self.actions).reshape(lead)
 
 
 class TokenDecoder:
@@ -53,7 +56,9 @@ class TokenDecoder:
             rng = np.random.default_rng(self._seed)
             self._w = (rng.standard_normal((n_source, self.vocab_size)) *
                        (1.0 / np.sqrt(n_source))).astype(np.float32)
-        return a @ self._w
+        lead = a.shape[:-1]
+        out = _native.dense_matmul(a.reshape(-1, n_source), self._w)
+        return out.reshape(*lead, self.vocab_size)
 
 
 # Alias for the common supervised head.

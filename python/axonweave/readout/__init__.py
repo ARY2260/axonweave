@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .. import native as _native
 from ..errors import ApiUsageError
 
 
@@ -53,7 +54,11 @@ class ClassificationReadout:
         if a.shape[-1] != self.n_source:
             raise ApiUsageError(
                 f"AXW010: expected last dimension {self.n_source}, got {a.shape[-1]}")
-        return a @ self.weight + self.bias
+        lead = a.shape[:-1]
+        out = _native.readout_logits(
+            a.reshape(-1, self.n_source), self.weight, self.bias,
+        )
+        return out.reshape(*lead, self.n_classes)
 
     def update(self, grad_weight: np.ndarray, grad_bias: np.ndarray | None = None,
                lr: float = 1e-3) -> None:
@@ -88,7 +93,11 @@ class RegressionReadout:
         if a.shape[-1] != self.n_source:
             raise ApiUsageError(
                 f"AXW010: expected last dimension {self.n_source}, got {a.shape[-1]}")
-        return a @ self.weight + self.bias
+        lead = a.shape[:-1]
+        out = _native.readout_logits(
+            a.reshape(-1, self.n_source), self.weight, self.bias,
+        )
+        return out.reshape(*lead, self.n_outputs)
 
     def update(self, grad_weight: np.ndarray, grad_bias: np.ndarray | None = None,
                lr: float = 1e-3) -> None:

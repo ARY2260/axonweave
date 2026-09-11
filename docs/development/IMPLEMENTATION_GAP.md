@@ -27,6 +27,8 @@ development cycle against the continuation specification.
 | Experiment loop | `axonweave.experiment.Agent` (encode → dynamics → decode → env → reward → plasticity), JSON-lines logging, checkpoints | implemented |
 | Brain facade | `brain.task(...)`, `brain.agent(...)`, `brain.layer(...)` (alias), `brain.simulate`, `brain.experiment` | implemented |
 | Torch high-level | `axonweave.frameworks.torch.BrainModel / ConnectomeBlock / Input / Readout` | implemented, requires torch (CI) |
+| Rust core (`axonweave._native`) | PyO3 extension from `rust/`: graph, dynamics, surrogates, learning, signals, receptors, delays, encoders, decoders, readout, provisioning kernels; dispatch through `native.py`; NumPy fallbacks (`_HAS_NATIVE` flag) | implemented |
+| Native/numpy equivalence suite | `tests/test_native_runtime.py` (skipif `_HAS_NATIVE=False`); CI job `native-equivalence` in `.github/workflows/rust.yml` | implemented |
 | Docs pages | framework, dynamics, encoders, learning, experiment | added to docs-site |
 
 ## 3. Missing abstractions (planned order)
@@ -49,13 +51,13 @@ development cycle against the continuation specification.
 
 ## 4. Missing tests
 
-- `tests/test_dynamics.py` (added this cycle)
-- `tests/test_encoders_decoders.py` (added)
-- `tests/test_learning.py` (added)
-- `tests/test_experiment.py` (added)
+- `tests/test_dynamics.py`, `tests/test_encoders_decoders.py`, `tests/test_learning.py`, `tests/test_experiment.py` (added this cycle)
+- `tests/test_native_runtime.py` (added this cycle) — native⇄NumPy equivalence; runs only in CI where the wheel is built, skipped locally (`_HAS_NATIVE=False`)
 - Torch-side `BrainModel/ConnectomeBlock` tests (added, torch-gated)
 - Keras-side high-level adapter tests — not started (module not implemented)
-- Rust: `cargo test` has no unit tests in `rust/src/lib.rs` yet
+- Rust: `cargo test` has no unit tests in `rust/src/*.rs` yet — the kernels are validated only through `test_native_runtime.py` vs their NumPy references
+- **Pending CI verification of the compiled extension** — `native-equivalence` job added to `rust.yml` but not yet observed green for all OS/Python combinations
+- Rust streaming graph builder and kernel benchmarks — planned, not started
 
 ## 5. Missing documentation
 
@@ -69,17 +71,26 @@ development cycle against the continuation specification.
 ## 6. CI coverage
 
 - `ci.yml` python matrix + backend-smoke already runs the full test suite;
-  new tests are picked up automatically. No workflow changes needed for this
-  cycle (spec §30: do not rewrite workflows without need).
+  new tests are picked up automatically.
+- `rust.yml` gained a `native-equivalence` job that builds the wheel with
+  maturin, installs it, runs `tests/test_native_runtime.py` against the
+  compiled extension, then runs the full suite against the wheel. This is the
+  authoritative verification of the Rust core; locally there is no Rust
+  toolchain, so the extension is never compiled here.
 - No new CI job required until JAX adapter exists.
 
 ## 7. Risks
 
-- `ConnectomeBlock` multi-step spiking dynamics is NumPy-executed inside the
-  torch forward (CPU round-trip). This is correct but slow and breaks
-  autograd through dynamics. Documented as experimental; surrogate gradients
-  are a Milestone B+ item.
+- `ConnectomeBlock` multi-step spiking dynamics runs through `native.py`
+  (compiled extension or NumPy reference) and returns NumPy arrays to the
+  torch forward, which means a CPU round-trip per step and no autograd
+  through dynamics. This is correct but slow; the surrogate-gradient kernels
+  exist (`surrogate.rs`), but wiring them into a differentiable framework
+  forward pass (e.g. a torch custom-autograd path) is still pending.
 - Plasticity `update()` operates on CSR data arrays; index math must be
   validated against non-square/duplicate-edge inputs (tests added).
+- Compiled-extension verification depends on CI (`native-equivalence` job);
+  there is no local Rust toolchain, so any native-only regression would be
+  caught only after push.
 - Local env has no torch/TF: all backend tests authored for CI, not run
   locally (spec §28/§33 — do not claim local execution).

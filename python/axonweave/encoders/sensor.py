@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from .. import native as _native
+
 
 class SensorEncoder:
     """Generic vector-to-current mapping for telemetry / robot sensors."""
@@ -22,6 +24,8 @@ class SensorEncoder:
             raise ApiUsageError(
                 f"AXW010: expected last dimension {self.n_sensors}, got {x.shape[-1]}"
             )
-        max_ = np.abs(x).max(axis=-1, keepdims=True)
-        x = x / np.maximum(max_, 1e-8)
-        return x @ self.projection
+        lead = x.shape[:-1]
+        flat = x.reshape(-1, self.n_sensors)
+        flat = _native.row_absmax_normalize(flat)
+        out = _native.dense_matmul(flat, self.projection)
+        return out.reshape(*lead, self.n_target)

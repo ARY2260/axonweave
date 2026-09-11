@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from .. import native as _native
+
 
 class TokenEncoder:
     """Maps discrete token IDs to input currents via a fixed embedding.
@@ -30,5 +32,6 @@ class TokenEncoder:
                 f"AXW010: token ids must be in [0, {self.vocab_size}); "
                 f"got range [{ids.min()}, {ids.max()}]"
             )
-        emb = self.embedding[ids]           # (..., embedding_dim)
-        return emb @ self.project           # (..., n_target)
+        emb = _native.embed_lookup(ids, self.embedding)      # (n_tokens, embedding_dim)
+        out = _native.dense_matmul(emb, self.project)         # (n_tokens, n_target)
+        return out.reshape(*ids.shape, self.n_target)

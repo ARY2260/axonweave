@@ -4,7 +4,7 @@
 
 ### NumPy/SciPy
 
-Reference CPU implementation. Useful for correctness tests, inspection and small graph experiments.
+Reference CPU implementation. All compute first routes through `native.py`, which dispatches either to the compiled Rust/PyO3 extension or an identical NumPy/SciPy reference — public results are the same either way. Useful for correctness tests, inspection and small graph experiments.
 
 ### PyTorch
 

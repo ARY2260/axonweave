@@ -1,5 +1,6 @@
 import numpy as np
 
+from .. import native as _native
 from ..core.selection import NeuronSelection
 from ..errors import ApiUsageError
 
@@ -34,5 +35,6 @@ class ConnectomeLayer:
         lead_shape = x.shape[:-1]
         n = x.shape[-1]
         flat = x.reshape(-1, n)
-        y = (flat @ m) * self.gain
+        # Propagate through the sparse connectome (pre -> post: x @ W).
+        y = _native.csr_matmul_2d_transpose(m, flat) * self.gain
         return y.reshape(*lead_shape, n)

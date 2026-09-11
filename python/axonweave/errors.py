@@ -21,6 +21,12 @@ class AxonWeaveError(RuntimeError):
     code = "AXW000"
 
 
+class AxonWeaveWarning(UserWarning):
+    """Base class for all AxonWeave warnings."""
+
+    code = "AXW000"
+
+
 class SubstrateNotInstalledError(AxonWeaveError):
     """The requested substrate is absent from the local cache (AXW001)."""
 
@@ -51,10 +57,28 @@ class BiologicalAssumptionError(AxonWeaveError):
     code = "AXW005"
 
 
+class ReceptorModelError(BiologicalAssumptionError):
+    """Receptor model configuration error (AXW009)."""
+
+    code = "AXW009"
+
+
 class BackendUnavailableError(AxonWeaveError):
     """An optional framework (torch, TensorFlow) is not installed (AXW006)."""
 
     code = "AXW006"
+
+
+class ConfigurationWarning(AxonWeaveWarning):
+    """A non-fatal configuration issue was detected (AXW007)."""
+
+    code = "AXW007"
+
+
+class AnnotationBuildWarning(AxonWeaveWarning):
+    """Selection table construction failed during install (AXW008)."""
+
+    code = "AXW008"
 
 
 class ApiUsageError(AxonWeaveError, ValueError):

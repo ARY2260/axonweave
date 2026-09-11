@@ -10,6 +10,31 @@ from typing import Any
 
 from ..errors import BiologicalAssumptionError
 
+from .surrogate import (
+    ATanSurrogate,
+    PiecewiseSurrogate,
+    SigmoidSurrogate,
+    StraightThroughEstimator,
+    SurrogateGradient,
+)
+
+
+def _propagate(input_current, W):
+    """Propagate input currents through the sparse connectome (pre -> post).
+
+    Returns ``None`` when there is no weight matrix (``W is None``).
+    """
+    if W is None:
+        return None
+    import numpy as np
+
+    from .. import native as _native
+
+    x = np.asarray(input_current, dtype=np.float32)
+    if x.ndim == 1:
+        return _native.sparse_matmul_transpose(W, x)
+    return _native.csr_matmul_2d_transpose(W, x)
+
 
 class DynamicsModel:
     """Base class for time-stepped neuron dynamics."""
@@ -53,20 +78,26 @@ class LIF(DynamicsModel):
     def step(self, state, input_current, W):
         import numpy as np
 
+        from .. import native as _native
+
         t = state["t"] + self.dt
-        can_spike = state["refrac_until"] <= t
-        # Synaptic input through the sparse connectome (pre -> post, W is [pre, post]).
-        synaptic = input_current @ W if W is not None else 0
-        dv = (-(state["v"] - self.v_rest) + synaptic) * (self.dt / self.tau)
-        v = np.where(can_spike, state["v"] + dv, state["v"])
-        spiked = can_spike & (v >= self.v_threshold)
-        v = np.where(spiked, self.v_reset, v)
+        synaptic = _propagate(input_current, W)
+        if synaptic is None:
+            current = np.zeros_like(state["v"], dtype=np.float32)
+        else:
+            current = np.asarray(synaptic, dtype=np.float32)
+        shape = state["v"].shape
+        spikes, v, refrac_until = _native.lif_step(
+            state["v"], state["refrac_until"], current, state["t"],
+            self.tau, self.v_rest, self.v_threshold, self.v_reset,
+            self.refractory, self.dt,
+        )
         new_state = {
-            "v": v,
-            "refrac_until": np.where(spiked, t + self.refractory, state["refrac_until"]),
+            "v": v.reshape(shape),
+            "refrac_until": refrac_until.reshape(shape),
             "t": t,
         }
-        return spiked.astype(np.float32), new_state
+        return spikes.reshape(shape), new_state
 
 
 @dataclass
@@ -89,23 +120,27 @@ class AdaptiveLIF(LIF):
     def step(self, state, input_current, W):
         import numpy as np
 
+        from .. import native as _native
+
         t = state["t"] + self.dt
-        can_spike = state["refrac_until"] <= t
-        synaptic = input_current @ W if W is not None else 0
-        dv = (-(state["v"] - self.v_rest) + synaptic) * (self.dt / self.tau)
-        v = np.where(can_spike, state["v"] + dv, state["v"])
-        spiked = can_spike & (v >= state["threshold"])
-        v = np.where(spiked, self.v_reset, v)
-        # Threshold relaxes toward base value, jumps up on spike.
-        threshold = state["threshold"] + (self.v_threshold - state["threshold"]) * (self.dt / self.tau_adapt)
-        threshold = np.where(spiked, threshold + self.delta_threshold, threshold)
+        synaptic = _propagate(input_current, W)
+        if synaptic is None:
+            current = np.zeros_like(state["v"], dtype=np.float32)
+        else:
+            current = np.asarray(synaptic, dtype=np.float32)
+        shape = state["v"].shape
+        spikes, v, threshold, refrac_until = _native.adaptive_lif_step(
+            state["v"], state["refrac_until"], state["threshold"], current,
+            state["t"], self.tau, self.v_rest, self.v_threshold, self.v_reset,
+            self.refractory, self.tau_adapt, self.delta_threshold, self.dt,
+        )
         new_state = {
-            "v": v,
-            "threshold": threshold,
-            "refrac_until": np.where(spiked, t + self.refractory, state["refrac_until"]),
+            "v": v.reshape(shape),
+            "threshold": threshold.reshape(shape),
+            "refrac_until": refrac_until.reshape(shape),
             "t": t,
         }
-        return spiked.astype(np.float32), new_state
+        return spikes.reshape(shape), new_state
 
 
 @dataclass
@@ -122,10 +157,18 @@ class Rate(DynamicsModel):
         return {"t": 0.0}
 
     def step(self, state, input_current, W):
+        import numpy as np
+
+        from .. import native as _native
+
         # Activity propagates along directed edges: pre -> post (x @ W).
-        synaptic = input_current @ W if W is not None else input_current
-        activity = self.baseline + self.gain * synaptic
-        return activity, {"t": state["t"] + self.dt}
+        if W is not None:
+            synaptic = _propagate(input_current, W)
+        else:
+            synaptic = input_current
+        syn = np.asarray(synaptic, dtype=np.float32)
+        activity = _native.rate_step(syn.ravel(), self.gain, self.baseline)
+        return activity.reshape(syn.shape), {"t": state["t"] + self.dt}
 
 
 @dataclass
@@ -149,3 +192,21 @@ class DynamicsPolicy:
             f"AXW005: no dynamics override registered for neuron type {neuron_type!r}; "
             f"known types: {sorted(self.overrides) or 'none'}"
         )
+
+
+from .spiking import SurrogateAdaptiveLIF, SurrogateLIF  # noqa: E402
+
+__all__ = [
+    "ATanSurrogate",
+    "AdaptiveLIF",
+    "DynamicsModel",
+    "DynamicsPolicy",
+    "LIF",
+    "PiecewiseSurrogate",
+    "Rate",
+    "SigmoidSurrogate",
+    "StraightThroughEstimator",
+    "SurrogateAdaptiveLIF",
+    "SurrogateGradient",
+    "SurrogateLIF",
+]

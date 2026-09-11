@@ -15,9 +15,11 @@ sparse substrate cache
     ↓
 BiologicalBrain
     ↓
-framework adapter
+native.py dispatch layer
+    ├── compiled extension (Rust/PyO3)
+    └── NumPy/SciPy reference (identical results)
     ↓
-native sparse/device operations
+framework adapter (tensor/device semantics)
     ↓
 user model
 ```
@@ -39,9 +41,9 @@ model = nn.Sequential(
 
 The exact tensor shapes are application-defined; the AxonWeave layer requires its final feature dimension to match the substrate state dimension.
 
-## Rust boundary
+## Rust core
 
-Rust/PyO3 is for native kernels, graph processing and future high-performance operations. Python remains the public API. Framework tensor/device execution remains in the framework adapter whenever possible.
+All low-level compute now routes through a single dispatch layer (`native.py`) that either calls the compiled PyO3 extension (`axonweave._native`, built from `rust/`) or an identical NumPy/SciPy reference — public results are the same either way, proven by `tests/test_native_runtime.py` in CI. The Rust core is a compute substrate, not a second runtime or a brain simulation. See [Rust Core](rust-core.md).
 
 ## Provenance
 

@@ -45,6 +45,30 @@ The architecture has five layers:
 4. **Framework adapter layer**: native PyTorch, TensorFlow/Keras and NumPy/SciPy execution.
 5. **Application layer**: arbitrary user models and custom layers.
 
+## Rust core and the dispatch contract
+
+All low-level compute is implemented in Rust (`axonweave._native`, a PyO3
+extension built from `rust/`). The Python package exposes a single dispatch
+layer — `python/axonweave/native.py` — that routes every primitive to the
+compiled kernel when it is importable (`_HAS_NATIVE = True`).
+
+- **Module map** (`rust/src/*.rs`): `graph` (CSR matmul/submatrix/fingerprint),
+  `dynamics` (LIF, adaptive-LIF, rate), `surrogate` (sigmoid/atan/piecewise/STE
+  gradients), `learning` (`stdp_update`), `signals` (vesicle release, NT
+  currents, f64), `receptors` (AMPA/GABA/NMDA/dopamine kernels, f32),
+  `delays` (ring engine + stateless `apply_delays`), `encoders` (dense matmul,
+  row-absmax normalize, embedding lookup), `decoders` (argmax/clip),
+  `readout` (linear logits), `provisioning` (SHA-256/MD5 file digests).
+- **Wrapper contract**: kernels return flat 1-D arrays (or scalars); Python
+  wrappers coerce inputs to canonical dtypes and reshape to public shapes. The
+  public API is byte-identical whether or not the extension is present.
+- **Fallback parity**: `native._numpy_*` are the authoritative reference
+  implementations; when the extension is absent they back every dispatcher so
+  the pure-Python path is fully functional. CI proves native/NumPy equivalence
+  on the built wheel (`tests/test_native_runtime.py`).
+- **No second tensor runtime**: Rust kernels only implement this library's
+  primitives; frame device execution (CUDA/MPS/etc.) stays in PyTorch/TensorFlow.
+
 ## Device principle
 
 Device execution belongs to the host backend. AxonWeave should not duplicate CUDA, MPS, XPU or TPU runtimes. The adapters create the backend's native sparse representation and use its supported operations. If a requested operation/device combination is unsupported, AxonWeave raises an actionable error.

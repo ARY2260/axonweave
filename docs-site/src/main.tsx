@@ -47,6 +47,7 @@ import faqMd from '../content/faq.md?raw';
 import limitationsMd from '../content/limitations.md?raw';
 import errorsMd from '../content/errors.md?raw';
 import readoutsMd from '../content/readouts.md?raw';
+import rustCoreMd from '../content/rust-core.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
@@ -78,7 +79,8 @@ const pages: Page[] = [
  {slug:'scientific-reference',label:'Scientific Reference',source:scientificMd,section:'Science'},
  {slug:'limitations',label:'Scientific Limitations',source:limitationsMd,section:'Science'},
  {slug:'interoperability',label:'Interoperability',source:interoperabilityMd,section:'Science'},
- {slug:'architecture',label:'Architecture',source:architectureMd,section:'Development'},
+{slug:'architecture',label:'Architecture',source:architectureMd,section:'Development'},
+ {slug:'rust-core',label:'Rust Core',source:rustCoreMd,section:'Development'},
  {slug:'release-engineering',label:'Release Process',source:releaseMd,section:'Development'},
  {slug:'contributing',label:'Contributing',source:contributingMd,section:'Development'},
  {slug:'faq',label:'FAQ',source:faqMd,section:'Project'},

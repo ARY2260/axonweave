@@ -121,7 +121,7 @@ class BrainLayer(keras.layers.Layer):
 
     def connect(self, module) -> "BrainLayer":
         """Register an Input or Readout interface descriptor."""
-        from ...frameworks.torch.interfaces import Input, Readout
+        from ...frameworks.interfaces import Input, Readout
 
         if isinstance(module, Input):
             self.input_proj = keras.layers.Dense(self._io_size, name="input_proj")

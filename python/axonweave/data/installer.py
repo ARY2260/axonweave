@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from pathlib import Path
@@ -15,11 +14,9 @@ from .registry import SubstrateRegistry
 DEFAULT_TIMEOUT = (20, 120)
 
 def _sha256(path: Path, chunk_size: int = 8 * 1024 * 1024) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        while chunk := f.read(chunk_size):
-            h.update(chunk)
-    return h.hexdigest()
+    from .. import native as _native
+
+    return _native.sha256_file(str(path))
 
 def _download(url: str, destination: Path, session=None) -> tuple[Path, str | None]:
     """Download (resuming when possible) and return the file path plus the
@@ -93,10 +90,14 @@ def install_male_cns(root=None, include_synapses=False, include_stats=False):
     try:
         from .builder import build_annotations
         build_annotations(raw / MALE_CNS["files"]["annotations"], target / "annotations.json")
-    except Exception:
-        # Absent selection tables degrade gracefully: by_type/by_region raise
-        # AXW010 with an actionable message at query time.
-        pass
+    except Exception as exc:
+        import warnings
+        warnings.warn(
+            f"AXW008: could not build selection tables from annotations: {exc}. "
+            "by_type()/by_region() selection will raise AXW010 with an actionable "
+            "message at query time.",
+            stacklevel=2,
+        )
 
     meta = {
         "id": MALE_CNS["id"],

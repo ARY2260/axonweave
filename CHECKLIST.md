@@ -41,6 +41,7 @@ Status legend:
 - [x] TensorFlow/Keras sparse `ConnectomeLayer`.
 - [x] Cross-backend numerical equivalence tests (NumPy = PyTorch = Keras).
 - [x] Ruff lint clean across `python/` and `tests/`.
+- [x] Rust core dispatch layer (`python/axonweave/native.py`): compiled `_native` kernels backed by `_numpy_*` references; public API identical with or without the extension.
 
 ### Connectome computing framework (Phases 1–5)
 - [x] Dynamics: `LIF`, `AdaptiveLIF`, `Rate`, `DynamicsPolicy` (per-type overrides, AXW005 on unknown types).
@@ -76,6 +77,7 @@ Status legend:
 - [x] Wheel build + wheel import smoke test in CI.
 - [x] Source-distribution build check.
 - [x] Rust/PyO3 CI.
+- [x] Native-equivalence CI lane (build wheel → run `test_native_runtime.py` → full fallback suite against the wheel).
 - [x] Docs CI: typecheck → design-token lint → build → artifact verification.
 - [x] Single consolidated GitHub Pages deploy workflow with `configure-pages(enablement: true)`.
 - [x] `.gitignore` reviewed; no secrets, no raw data, no build artifacts committed.
@@ -86,6 +88,10 @@ The following are implemented with tests authored but **not executed locally**
 (the machine has no torch/tensorflow/Rust toolchain in PATH). GitHub Actions is
 the authoritative validation environment:
 
+- [ ] Rust/PyO3 kernels: `graph`, `dynamics`, `surrogate`, `learning`, `signals`,
+      `receptors`, `delays`, `encoders`, `decoders`, `readout`, `provisioning`
+      (hand-written against pyo3 0.22 / numpy 0.22; compiled config is CI-verified).
+- [ ] Native⇄NumPy equivalence suite (`tests/test_native_runtime.py`) on the built wheel.
 - [ ] PyTorch `ConnectomeLayer` test suite (`tests/test_torch_layer.py`).
 - [ ] TensorFlow/Keras `ConnectomeLayer` test suite (`tests/test_keras_layer.py`).
 - [ ] Cross-backend equivalence tests requiring torch/tensorflow (`tests/test_cross_backend.py`).
@@ -127,3 +133,10 @@ the authoritative validation environment:
 - [x] Brain docs page documents info/capabilities/fingerprint/selection/selections-in-layers.
 - [x] First-class `axonweave.readout` package: `ClassificationReadout`, `RegressionReadout`, `TokenReadout`, `ActionReadout` with explicit `n_source` dimension guards (AXW010), reference-path SGD `update()` gated on `trainable=True`, deterministic seeds, top-level re-exports; 12 tests; Readouts doc page in Concepts section.
 - [x] Docs: language label chips on code blocks; line-number gutters on long Python blocks; pinned (sticky) gutter rail outside the scrolling code area; per-page re-highlighting fix; SF Mono leading the code font stack; Prism powershell grammar.
+
+### Typed neuron metadata (Phase 2 biological model core)
+- [x] `NeuronMetadata` dataclass (body_id, cell_type, region, hemisphere) with null-safe repr.
+- [x] `NeuronMetadataStore` (`core/metadata.py`): lazy load from annotations Feather (pyarrow) or JSON; per-neuron `get`, `get_batch`, `query(cell_type, region, hemisphere)`, `types()`, `regions()`, `has_types/has_regions/has_hemispheres`, `summary()`; graceful degradation (None/empty) when no annotations exist; alias-tolerant column resolution.
+- [x] `BiologicalBrain.metadata` property (lazy-loaded `NeuronMetadataStore` from the annotations attachment) with `_metadata_store` field.
+- [x] Top-level re-exports of `NeuronMetadata` / `NeuronMetadataStore` (`core/__init__.py`, package `__init__.py`).
+- [x] Test suite `tests/test_metadata.py` (16 tests) covering JSON + Feather paths, empty-store degradation, filtering, lazy loading.

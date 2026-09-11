@@ -2,7 +2,7 @@
 
 ## CI matrix
 
-The repository defines CI for Ubuntu, macOS and Windows and Python 3.10–3.14. Separate jobs build/test Rust/PyO3 and build platform wheels.
+The repository defines CI for Ubuntu, macOS and Windows and Python 3.10–3.14. Separate jobs build/test Rust/PyO3 and build platform wheels with maturin (extension included). Source distributions remain usable without a Rust toolchain — the pure-Python fallback in `native.py` provides identical functionality. A `native-equivalence` job builds the wheel, installs it, and runs the native⇄NumPy equivalence suite against the compiled extension.
 
 ## PyPI publishing
 

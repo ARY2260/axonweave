@@ -28,7 +28,7 @@ what is written vs CI-verified), `[ ]` not started.
 
 ## Phase 2 — Biological model core
 
-- [ ] Typed neuron metadata API.
+- [x] Typed neuron metadata API.
 - [ ] ROI/body-ID selectors (`brain.neurons` collection).
 - [ ] Receptor model interface.
 - [x] Neuron-type dynamics interface (`DynamicsPolicy` overrides per type).
@@ -53,9 +53,11 @@ what is written vs CI-verified), `[ ]` not started.
 ## Phase 4 — Native performance
 
 - [x] PyO3 boundary.
+- [x] Sparse propagation kernels (CSR matmul ×4, submatrix, fingerprint).
+- [x] Native core dispatch (`native.py` + wheel `axonweave._native`) with `_numpy_*` fallbacks proven equivalent in CI.
+- [x] Native⇄NumPy equivalence suite (`tests/test_native_runtime.py`).
 - [ ] Rust Arrow/Parquet/Feather streaming graph builder.
 - [ ] Parallel graph construction.
-- [ ] Sparse propagation kernels.
 - [ ] Profiling/benchmark suite.
 - [ ] Memory-budgeted execution.
 

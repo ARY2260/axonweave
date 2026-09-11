@@ -7,5 +7,12 @@ edition = "2021"
 name = "axonweave"
 crate-type = ["cdylib"]
 
+[features]
+default = []
+
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
+numpy = "0.22"
+sha2 = "0.10"
+md-5 = "0.10"
+base64 = "0.22"

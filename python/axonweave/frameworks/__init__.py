@@ -6,3 +6,6 @@ backends stay optional):
 - ``axonweave.frameworks.torch``  — BrainModel, ConnectomeBlock (torch)
 - ``axonweave.frameworks.keras``  — BrainLayer, KerasConnectomeBlock (tf.keras)
 """
+from .interfaces import Input, Readout
+
+__all__ = ["Input", "Readout"]

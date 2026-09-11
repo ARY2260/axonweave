@@ -35,6 +35,15 @@ Read, in order:
 
 Use typed public interfaces, stable error codes and explicit configuration. Avoid hidden global state.
 
+### Native core rules
+
+- All low-level compute lives in Rust (`rust/`, module `axonweave._native`) with identical NumPy/SciPy fallbacks in `python/axonweave/native.py` (`native._numpy_*`).
+- Every new primitive: add the Rust kernel, the `_numpy_*` reference, the dispatcher in `native.py`, and an equivalence test in `tests/test_native_runtime.py`.
+- Public behaviour must be identical with or without the compiled extension; the extension is built only in CI (`rust.yml`).
+- Never return framework tensors from `native.py`; return NumPy arrays or scalars (framework adapters own device/tensor semantics).
+- A `_numpy_*` reference must stay the single source of numeric truth and be kept in sync with its Rust kernel.
+- Do not add a second tensor runtime inside AxonWeave.
+
 ### Data rules
 
 Never add raw upstream MaleCNS data to source control. Substrate artifacts are provisioned and cached separately.

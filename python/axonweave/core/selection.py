@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .. import native as _native
 from ..errors import ApiUsageError
 
 
@@ -34,7 +35,7 @@ class NeuronSelection:
     def weights(self) -> np.ndarray:
         """Sub-matrix of the connectome restricted to the selection."""
         m = self.graph.weights
-        return m[self.indices][:, self.indices]
+        return _native.csr_submatrix(m, self.indices, self.indices)
 
     def mask(self, n: int | None = None) -> np.ndarray:
         """Boolean mask of length ``n`` (default: all neurons), True on selection."""

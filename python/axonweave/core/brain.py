@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass
 from pathlib import Path
-
-import numpy as np
 
 
 SUBSTRATE_ID = "male-cns:v1.0"
@@ -16,16 +13,9 @@ def substrate_fingerprint(graph) -> str:
     Deterministic for identical graph content regardless of matrix
     canonicalization order of duplicate entries.
     """
-    m = graph.weights.tocsr()
-    m.sum_duplicates()
-    m = m.sorted_indices()
-    h = hashlib.sha256()
-    h.update(np.asarray(m.shape, dtype=np.int64).tobytes())
-    h.update(np.ascontiguousarray(graph.body_ids, dtype=np.int64).tobytes())
-    h.update(np.ascontiguousarray(m.indptr, dtype=np.int64).tobytes())
-    h.update(np.ascontiguousarray(m.indices, dtype=np.int64).tobytes())
-    h.update(np.ascontiguousarray(m.data, dtype=np.float32).tobytes())
-    return h.hexdigest()
+    from .. import native as _native
+
+    return _native.csr_fingerprint(graph.weights, graph.body_ids)
 
 
 @dataclass
@@ -61,6 +51,14 @@ class BiologicalBrain:
     annotations: Path | None = None
     neurotransmitters: Path | None = None
     receptors: Path | None = None
+    _metadata_store: object | None = None
+
+    @property
+    def metadata(self):
+        from .metadata import NeuronMetadataStore
+        if self._metadata_store is None:
+            self._metadata_store = NeuronMetadataStore(self.annotations)
+        return self._metadata_store
 
     @property
     def n_neurons(self):
@@ -71,8 +69,14 @@ class BiologicalBrain:
         return SUBSTRATE_ID
 
     @property
+    def fingerprint_obj(self):
+        from ..data.fingerprint import compute_fingerprint
+        return compute_fingerprint(self.graph)
+
+    @property
     def fingerprint(self) -> str:
-        return substrate_fingerprint(self.graph)
+        from ..data.fingerprint import compute_fingerprint
+        return compute_fingerprint(self.graph).content_hash
 
     def info(self) -> BrainInfo:
         import axonweave as _ax
@@ -139,7 +143,7 @@ class BiologicalBrain:
                 "install axonweave[tensorflow]"
             ) from e
         from ..frameworks.keras import BrainLayer
-        from ..frameworks.torch.interfaces import Input, Readout
+        from ..frameworks.interfaces import Input, Readout
 
         model = BrainLayer(self, dynamics=dynamics, selection=selection, **kwargs)
         if input is not None:

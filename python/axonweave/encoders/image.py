@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from .. import native as _native
+
 
 class ImageEncoder:
     """Maps 2D/3D visual observations to currents for a target neuron group.
@@ -30,8 +32,8 @@ class ImageEncoder:
     def __call__(self, obs) -> np.ndarray:
         x = np.asarray(obs, dtype=np.float32)
         lead = x.shape[:-len(self.shape)]
-        flat = x.reshape(*lead, self.n_input)
+        flat = x.reshape(-1, self.n_input)
         if self.normalize:
-            max_ = np.abs(flat).max(axis=-1, keepdims=True)
-            flat = flat / np.maximum(max_, 1e-8)
-        return flat @ self.projection
+            flat = _native.row_absmax_normalize(flat)
+        out = _native.dense_matmul(flat, self.projection)
+        return out.reshape(*lead, self.n_target)

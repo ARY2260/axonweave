@@ -49,10 +49,16 @@ class ConnectomeBlock(nn.Module):
                  selection: NeuronSelection | None = None):
         super().__init__()
         if dynamics not in ("rate",) and n_steps != 1 and trainable_edges:
-            # Gradient flow through multi-step spiking dynamics is not
-            # surrogate-gradient enabled yet; be explicit rather than silent.
-            pass
+            import warnings
+            warnings.warn(
+                "AXW007: multi-step spiking dynamics with trainable_edges is not "
+                "surrogate-gradient enabled yet; gradients through the spiking "
+                "path will be zero. Use dynamics='rate' or n_steps=1 for "
+                "trainable edge learning.",
+                stacklevel=2,
+            )
         self.brain = brain
+        self.dynamics = resolve_dynamics(dynamics)
         self.layer = ConnectomeLayer(
             brain.graph, trainable_edges=trainable_edges,
             learnable_gain=learnable_gain, selection=selection)

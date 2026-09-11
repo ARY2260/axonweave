@@ -14,3 +14,36 @@ jobs:
           command: build
           args: --release --out dist
           manylinux: auto
+
+  native-equivalence:
+    name: native vs numpy equivalence
+    strategy:
+      matrix: {os: [ubuntu-latest, windows-latest]}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --out dist
+          manylinux: auto
+      - name: Install wheel and test deps
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install dist/*.whl
+      - name: Run native-numpy equivalence suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest tests/test_native_runtime.py -q
+      - name: Run full fallback suite against wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest tests -q --ignore=tests/test_native_runtime.py
