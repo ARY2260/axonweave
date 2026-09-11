@@ -208,12 +208,26 @@ function App(){
    };
    addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);
  },[]);
- const page=pages.find(p=>p.slug===slug);
- const html=useMemo(()=>page?rewriteDocLinks(render(page.source)):'', [page]);
+const page=pages.find(p=>p.slug===slug);
+  const html=useMemo(()=>page?rewriteDocLinks(render(page.source)):'', [page]);
+
+  // Programmatic page changes must jump to the top instantly. The default
+  // `scroll-behavior:smooth` on <html> would animate every navigation as a
+  // slow scroll from the current deep position, and interrupt if the user
+  // clicks again mid-flight. Ctrl-click / context-menu navigation to a new
+  // URL never runs this (the browser handles real loads); this only covers
+  // the in-app SPA transitions.
+  const jumpToTop=()=>{
+    const htmlEl=document.documentElement;
+    const prev=htmlEl.style.scrollBehavior;
+    htmlEl.style.scrollBehavior='auto';
+    window.scrollTo(0,0);
+    htmlEl.style.scrollBehavior=prev;
+  };
 
  useEffect(()=>{document.title=page?`${page.label} · AxonWeave`: 'Page not found · AxonWeave'; const domain=import.meta.env.VITE_ANALYTICS_DOMAIN as string|undefined; if(domain && !document.querySelector('script[data-axonweave-analytics]')){const script=document.createElement('script');script.defer=true;script.dataset.domain=domain;script.dataset.axonweaveAnalytics='true';script.src=`https://plausible.io/js/script.js`;document.head.appendChild(script)}},[page]);
  const sections=[...new Set(pages.map(p=>p.section))];
- const navigate=(s:string)=>{history.pushState({},'',hrefFor(s));setSlug(s);setMobile(false);scrollTo(0,0)};
+ const navigate=(s:string)=>{history.pushState({},'',hrefFor(s));setSlug(s);setMobile(false);jumpToTop()};
  return <><Helmet><meta name="description" content={page?`AxonWeave ${page.label} documentation`: 'AxonWeave documentation'}/><meta property="og:title" content={page?`${page.label} · AxonWeave`:'AxonWeave Documentation'}/><meta property="og:description" content={page?`AxonWeave ${page.label} documentation`:'AxonWeave documentation'}/><meta name="twitter:card" content="summary"/></Helmet><div className="app">
    <header className="topbar">
      <button className="icon-button mobile-menu" onClick={()=>setMobile(!mobile)} aria-label="Open navigation"><Menu size={20}/></button>
@@ -238,7 +252,7 @@ function App(){
     <main id="main" className="content">
       {page?<><nav className="breadcrumbs" aria-label="Breadcrumb"><a className="crumb-link" href={hrefFor('index')} onClick={e=>{e.preventDefault();navigate('index')}}>Docs</a><span>/</span><span className="crumb-here">{page.label}</span></nav><div className="title-row"><h1 style={{display:'none'}}/><div className="title-row-spacer"/><FeedbackWidget slug={slug}/></div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
     </main>
-    {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc/></aside>}
+    {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc slug={slug}/></aside>}
    </div>
    <div className="sidebar-resizer" onMouseDown={e=>{dragRef.current={startX:e.clientX,startW:sidebarWidth};document.body.classList.add('resizing')}} role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabIndex={0}/>
    <footer><span>AxonWeave · Apache-2.0 software</span><span><a href={hrefFor('privacy')} onClick={e=>{e.preventDefault();navigate('privacy')}}>Privacy</a> · <a href={hrefFor('terms')} onClick={e=>{e.preventDefault();navigate('terms')}}>Terms</a></span></footer>
@@ -262,10 +276,11 @@ function FeedbackWidget({slug}:{slug:string}){
  </div>;
 }
 
-function Toc(){
+function Toc({slug}:{slug:string}){
  const [items,setItems]=useState<{id:string,text:string,level:number}[]>([]);
  const [active,setActive]=useState<string>('');
  useEffect(()=>{
+   setActive('');
    const hs=[...document.querySelectorAll('article h2,article h3')];
    const out=hs.map((h,i)=>{const id=`section-${i}-${(h.textContent||'').toLowerCase().replace(/[^a-z0-9]+/g,'-')}`;h.id=id;return{id,text:h.textContent||'',level:h.tagName==='H2'?2:3}});
    setItems(out);
@@ -276,7 +291,7 @@ function Toc(){
    },{rootMargin:'-64px 0px -70% 0px'});
    out.forEach(it=>{const el=document.getElementById(it.id);if(el)obs.observe(el)});
    return()=>obs.disconnect();
- },[]);
+ },[slug]);
  return <nav>{items.map(x=><a className={(x.level===3?'sub ':'')+(active===x.id?'active':'')} href={`#${x.id}`} key={x.id}><ChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
 }
 function NotFound({navigate}:{navigate:(s:string)=>void}){return <div className="not-found"><p className="eyebrow">404</p><h1>Page not found</h1><p>The requested documentation page does not exist.</p><button className="primary" onClick={()=>navigate('index')}>Return to documentation</button></div>}
