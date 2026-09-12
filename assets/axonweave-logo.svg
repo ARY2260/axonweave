@@ -1,12 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-<title id="title">AxonWeave logo</title><desc id="desc">A woven neural axon mark formed by intersecting pathways around a central node.</desc>
-<rect width="256" height="256" rx="52" fill="#10151b"/>
-<g fill="none" stroke="#d9e2ea" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-<path d="M54 72 C92 34 164 34 202 72 C220 90 220 112 202 128 C220 144 220 166 202 184 C164 222 92 222 54 184 C36 166 36 144 54 128 C36 112 36 90 54 72Z"/>
-<path d="M54 72 C92 110 164 146 202 184"/>
-<path d="M202 72 C164 110 92 146 54 184"/>
-</g>
-<circle cx="128" cy="128" r="16" fill="#d9e2ea"/>
-<circle cx="54" cy="72" r="7" fill="#7fb3c8"/><circle cx="202" cy="72" r="7" fill="#7fb3c8"/>
-<circle cx="54" cy="184" r="7" fill="#7fb3c8"/><circle cx="202" cy="184" r="7" fill="#7fb3c8"/>
+  <title id="title">AxonWeave Brand Identity Mark</title>
+  <desc id="desc">A refined technical redesign utilizing the original neural capsule geometry, upgraded with AxonWeave design system tokens, a multi-tiered central soma node, and precise brand accent coloring.</desc>
+  
+  <!-- Canvas Background matching token standard -->
+  <rect width="256" height="256" rx="56" fill="#121212"/>
+  
+  <!-- Outer Neural Capsule / Boundary Path (Steel-Blue #b7e2ef) -->
+  <path d="M54 72 C92 34 164 34 202 72 C220 90 220 112 202 128 C220 144 220 166 202 184 C164 222 92 222 54 184 C36 166 36 144 54 128 C36 112 36 90 54 72Z" 
+        fill="none" stroke="#b7e2ef" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        
+  <!-- Intersecting Pathways with Brand Accent (Coral-Red #ee4c2c) -->
+  <path d="M54 72 C92 110 164 146 202 184" fill="none" stroke="#ee4c2c" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+  <path d="M202 72 C164 110 92 146 54 184" fill="none" stroke="#b7e2ef" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Central Soma Node (Multi-tiered biological processing hub) -->
+  <circle cx="128" cy="128" r="20" fill="#121212"/>
+  <circle cx="128" cy="128" r="16" fill="#121212" stroke="#b7e2ef" stroke-width="5"/>
+  <circle cx="128" cy="128" r="6" fill="#ee4c2c"/>
+  
+  <!-- Synapse Terminals (Color-coded contact anchors matching pathway endpoints) -->
+  <circle cx="54" cy="72" r="7" fill="#b7e2ef"/>
+  <circle cx="202" cy="72" r="7" fill="#ee4c2c"/>
+  <circle cx="54" cy="184" r="7" fill="#ee4c2c"/>
+  <circle cx="202" cy="184" r="7" fill="#b7e2ef"/>
 </svg>

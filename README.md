@@ -1,7 +1,7 @@
 # AxonWeave
 
 <div align="center">
-  <img src="docs-site/public/logo.svg" alt="AxonWeave logo" width="120"/>
+  <img src="assets/logo.svg" alt="AxonWeave logo" width="120"/>
   <p><strong>AxonWeave</strong> · v0.1.0</p>
   <p><em>A woven neural axon mark — two interlaced strands crossing a central soma node.</em></p>
 </div>

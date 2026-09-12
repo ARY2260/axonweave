@@ -26,6 +26,13 @@ Cargo.lock
 node_modules/
 docs-site/dist/
 .vite/
+*.tsbuildinfo
+
+# Logs, caches and archives
+*.log
+*.log.*
+.cache/
+*.tgz
 
 # IDE/OS
 .vscode/
@@ -56,6 +63,7 @@ axonweave-cache/
 /tmp/
 *.prompt.md
 *_agent_output.*
+.opencode/
 
 # Secrets
 .env

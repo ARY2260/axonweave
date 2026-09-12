@@ -26,6 +26,9 @@ import troubleshootingMd from '../content/troubleshooting.md?raw';
 import configurationMd from '../content/configuration.md?raw';
 import privacyMd from '../content/privacy.md?raw';
 import termsMd from '../content/terms.md?raw';
+import licenseMd from '../content/license.md?raw';
+import codeOfConductMd from '../content/code-of-conduct.md?raw';
+import securityMd from '../content/security.md?raw';
 import examplesCustomPolicyMd from '../content/examples-custom-policy.md?raw';
 import examplesPytorchCompositionMd from '../content/examples-pytorch-composition.md?raw';
 import examplesSelectionMd from '../content/examples-selection.md?raw';
@@ -86,6 +89,9 @@ const pages: Page[] = [
  {slug:'faq',label:'FAQ',source:faqMd,section:'Project'},
  {slug:'privacy',label:'Privacy Policy',source:privacyMd,section:'Project'},
  {slug:'terms',label:'Terms & Conditions',source:termsMd,section:'Project'},
+ {slug:'license',label:'License',source:licenseMd,section:'Project'},
+ {slug:'code-of-conduct',label:'Code of Conduct',source:codeOfConductMd,section:'Project'},
+ {slug:'security',label:'Security Policy',source:securityMd,section:'Project'},
  {slug:'errors',label:'Errors & Diagnostics',source:errorsMd,section:'Reference'},
  {slug:'troubleshooting',label:'Troubleshooting',source:troubleshootingMd,section:'Project'},
 ];

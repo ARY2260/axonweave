@@ -15,7 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: 22}
+        with:
+          node-version: 24 # Node.js 24 LTS
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
       - working-directory: docs-site
         run: npm install
       - name: Typecheck

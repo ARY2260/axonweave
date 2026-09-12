@@ -1,5 +1,9 @@
 # Security Policy
 
+:::DOC-NOTE
+The canonical policy is maintained in the repository root at `SECURITY.md`; this page mirrors it in the web documentation.
+:::
+
 AxonWeave is an open-source scientific library that ships a small Python package,
 an optional Rust/PyO3 native extension, and a static documentation website. This
 page documents supported versions, how to report security issues, and the
@@ -18,7 +22,7 @@ supported.
 | `main` branch | No; maintained for maintainers and contributors only |
 | Nightly built docs | No |
 
-For release channels, see the [distribution](distribution) page.
+For release channels, see the [distribution](distribution.md) page.
 
 ## Reporting a vulnerability
 

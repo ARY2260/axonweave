@@ -107,7 +107,7 @@ the authoritative validation environment:
 - [ ] JAX adapter (`axonweave.jax`): `ConnectomeLayer`, `BrainModel`, `ConnectomeBlock`, `Input`, `Readout` — written, no local JAX installation to test; numerical/device CI verification pending.
 - [ ] Rust/PyO3 build and tests on CI runners.
 - [ ] Wheel builds across the OS × Python matrix.
-- [ ] GitHub Pages deployment job (also blocked on repo visibility/Pages plan).
+- [x] GitHub Pages deployment job (`docs.yml` builds the docs site with the `VITE_BASE_PATH=/axonweave/` base on Node 24 LTS and force-pushes the result to the `gh-pages` branch on push to `main`).
 
 ## NOT STARTED
 
@@ -124,7 +124,7 @@ the authoritative validation environment:
 - [ ] Rust streaming graph builder; parallel construction; benchmark suite.
 - [ ] Configure GitHub OIDC trusted publishing on PyPI.
 - [ ] Documentation hosting domain and analytics endpoint (pending Pages).
-- [ ] Security/dependency scanning policy completion.
+- [x] Security/dependency scanning policy completion (full `LICENSE` (Apache-2.0), `CODE_OF_CONDUCT.md`, and `SECURITY.md` written; mirrored as License / Code of Conduct / Security Policy pages in the docs site).
 - [ ] Independent scientific review; reproducibility/benchmark/limitations reports; stable v1.0 API.
 
 ## COMPLETED (framework phase additions)

@@ -1,4 +1,8 @@
-# Contributor Covenant Code of Conduct
+# Code of Conduct
+
+:::DOC-NOTE
+The canonical policy is maintained in the repository root at `CODE_OF_CONDUCT.md`; this page mirrors it in the web documentation.
+:::
 
 ## Our Pledge
 

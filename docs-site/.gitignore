@@ -1,0 +1,15 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# TypeScript incremental build metadata
+*.tsbuildinfo
+
+# Vite dev server cache
+.vite/
+
+# Logs
+*.log
+*.log.*

@@ -25,9 +25,9 @@ const purify = DOMPurify(window);
 // failure indicates either a content bug or a renderer divergence).
 const calloutBody = (body) => marked.parse(body).trim();
 const normalize = (md) => md
-  .replace(/^:::DOC-NOTE\n([\s\S]*?)\n:::/gm, (_m, b) => `<div class="callout callout-note"><p class="callout-title">Note</p>\n${calloutBody(b)}\n</div>`)
-  .replace(/^:::DOC-WARN\n([\s\S]*?)\n:::/gm, (_m, b) => `<div class="callout callout-warn"><p class="callout-title">Constraint</p>\n${calloutBody(b)}\n</div>`)
-  .replace(/^:::DOC-TIP\n([\s\S]*?)\n:::/gm, (_m, b) => `<div class="callout callout-tip"><p class="callout-title">Tip</p>\n${calloutBody(b)}\n</div>`);
+  .replace(/^:::DOC-NOTE ?\n?([\s\S]*?)\n:::/gm, (_m, b) => `<div class="callout callout-note"><p class="callout-title">Note</p>\n${calloutBody(b)}\n</div>`)
+  .replace(/^:::DOC-WARN ?\n?([\s\S]*?)\n:::/gm, (_m, b) => `<div class="callout callout-warn"><p class="callout-title">Constraint</p>\n${calloutBody(b)}\n</div>`)
+  .replace(/^:::DOC-TIP ?\n?([\s\S]*?)\n:::/gm, (_m, b) => `<div class="callout callout-tip"><p class="callout-title">Tip</p>\n${calloutBody(b)}\n</div>`);
 const render = (md) => purify.sanitize(marked.parse(normalize(md)), { ADD_ATTR: ['target', 'rel', 'class'] });
 
 // Link rewrite from src/main.tsx: content-relative .md links become clean
