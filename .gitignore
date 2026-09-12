@@ -63,7 +63,7 @@ axonweave-cache/
 /tmp/
 *.prompt.md
 *_agent_output.*
-.opencode/
+.opencode/*
 
 # Secrets
 .env
