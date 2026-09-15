@@ -77,6 +77,31 @@ model = BrainModel(brain, trainable_edges=True, learning="dopamine_stdp")
 
 Backprop trains interfaces and synaptic residuals; STDP adapts synapses locally during environment interaction.
 
+## Gradients through spiking dynamics (BPTT)
+
+For temporal training, gradient-based modes route through the stateful runtime. When the model's dynamics is a surrogate-spiking model (`SurrogateLIF` / `SurrogateAdaptiveLIF`), the torch path becomes fully differentiable: `loss.backward()` on `forward_sequence` output reaches edge weights, gain and the readout through every timestep, and `detach_state()` marks truncated-BPTT chunk boundaries:
+
+```python
+from axonweave.dynamics import SurrogateLIF, SigmoidSurrogate
+
+model = BrainModel(
+    brain=brain,
+    encoder=encoder,
+    dynamics=SurrogateLIF(surrogate=SigmoidSurrogate(k=5.0)),
+    readout=readout,
+)
+for chunk in chunks:
+    out = model.forward_sequence(chunk)
+    loss = criterion(out, targets)
+    loss.backward()
+    opt.step()
+    model.detach_state()
+```
+
+The spike is a hard threshold forward with a surrogate derivative backward; the surrogate (sigmoid / atan / piecewise / straight-through) is an explicit configuration choice — the library never silently substitutes surrogate gradients. See [Temporal Runtime](runtime.md).
+
+Plain `LIF` (without a surrogate) has no gradient path through its spikes: use it frozen (Mode 1) or with `dynamics='rate'` for gradient training.
+
 ## Comparison
 
 | Mode | Trains | Optimizer | Substrate graph |

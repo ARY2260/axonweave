@@ -53,6 +53,8 @@ print(brain.n_neurons)
 
 ## PyTorch
 
+Static (single-timestep) propagation through a layer:
+
 ```python
 import torch
 from axonweave.torch import ConnectomeLayer
@@ -66,6 +68,27 @@ layer = ConnectomeLayer(
 x = torch.randn(2, brain.n_neurons)
 y = layer(x)
 ```
+
+Or the high-level stateful model (encoder -> runtime -> readout):
+
+```python
+from axonweave.torch import BrainModel
+from axonweave.encoders import VectorEncoder
+from axonweave.dynamics import LIF
+from axonweave.readout import RegressionReadout
+
+model = BrainModel(
+    brain=brain,
+    encoder=VectorEncoder(input_dim=8, output_dim=256),
+    dynamics=LIF(),
+    readout=RegressionReadout(n_source=256, n_outputs=1),
+)
+model.reset_state()
+for x_t in stream:
+    prediction = model.step(x_t)     # state persists between steps
+```
+
+See [Temporal Runtime](runtime.md) for sequences, state capture and BPTT.
 
 ## Keras
 

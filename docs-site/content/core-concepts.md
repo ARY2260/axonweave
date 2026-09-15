@@ -8,6 +8,8 @@ The mental model behind AxonWeave: what the biological substrate provides, what 
 substrate  +  computational model  +  interface  +  task
 ```
 
+The connectome itself is a **recurrent, stateful substrate**: running it over time is a first-class concept, not a byproduct of stacking layers. The [Temporal Runtime](runtime.md) owns that execution — explicit state, sequence semantics, deterministic replay — while the substrate stays identifiable under learning.
+
 | Concept | What it is | Who provides it |
 |---|---|---|
 | **Substrate** | The versioned connectome: sparse graph, body IDs, provenance | Upstream science (MaleCNS) + AxonWeave provisioning |

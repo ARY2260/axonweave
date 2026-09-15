@@ -1,6 +1,5 @@
 # Tasks
 
-
 :::DOC-WARN
 The task API requires PyTorch (`pip install "axonweave[torch]"`) and is **experimental**. Keras and JAX task adapters are planned.
 :::
@@ -12,12 +11,14 @@ data
   ↓
 encoder      (application data → neural currents)
   ↓
-brain        (sparse connectome + dynamics)
+brain        (sparse connectome + dynamics; stateful over time)
   ↓
 readout      (neural activity → task output)
   ↓
 loss         (host framework)
 ```
+
+For temporal tasks (sequences, forecasting, token streams) the stateful `BrainModel` supports per-timestep `step()`, batched `forward_sequence()` and truncated BPTT through spiking dynamics — see [Temporal Runtime](runtime.md).
 
 ## Creating a task
 

@@ -4,6 +4,33 @@ Encoders map external data modalities into neural stimulation patterns. Decoders
 
 ## Encoders
 
+Every encoder follows one protocol: it declares `input_shape` (excluding batch), `output_size` and `dtype`, so wiring errors surface before execution (`AXW010` otherwise). Encoders are seeded and deterministic engineering components — the projection they apply is an explicit modeling assumption, not biology.
+
+### VectorEncoder
+
+Fixed random projection from a feature vector to input currents — the default choice for static feature data:
+
+```python
+from axonweave.encoders import VectorEncoder
+
+enc = VectorEncoder(input_dim=8, output_dim=256, seed=0)
+enc.input_shape   # (8,)
+enc.output_size   # 256
+currents = enc(features)    # (batch, 256)
+```
+
+### TimeSeriesEncoder
+
+Per-timestep encoder for `[B, T, features]` streams. With `window=1` the mapping is memoryless — recurrence lives in the connectome. With `window=k` the current at step `t` carries the last `k` observations (zero-padded at sequence start):
+
+```python
+from axonweave.encoders import TimeSeriesEncoder
+
+enc = TimeSeriesEncoder(input_dim=10, output_dim=256, window=1)
+enc.input_shape   # (1, 10)
+currents = enc(seq)         # (batch, T, 256)
+```
+
 ### ImageEncoder
 
 Maps 2D/3D visual input to currents injected into a selected neuron group:
@@ -41,7 +68,9 @@ enc = SensorEncoder(n_sensors=12, n_target=512)
 currents = enc(sensor_vector)
 ```
 
-## Decoders
+## Decoders and readouts
+
+The output side has two names for the same components: `axonweave.decoders` (framework-neutral building blocks) and `axonweave.readout` (the task-facing package used by `BrainModel`). See [Readouts](readouts.md) for the full signatures.
 
 ### ActionDecoder
 
