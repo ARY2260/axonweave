@@ -700,12 +700,49 @@ export default function Playground({ dark }: PlaygroundProps) {
     width: '100%', height: '100%', display: 'block' as const,
   }), []);
 
+  // Presets: pre-built demo scenarios
+  const presets: Record<string, { n: number; d: number; s: number; m: string; f: number; a: number; t: number; label: string; desc: string }> = {
+    default: { n: 24, d: 0.15, s: 42, m: 'sine', f: 3, a: 1.0, t: 15, label: 'Default', desc: 'Balanced network with sine input' },
+    sparse: { n: 16, d: 0.08, s: 7, m: 'pulse', f: 2, a: 1.5, t: 20, label: 'Sparse Pulse', desc: 'Low density, pulse-driven, slow dynamics' },
+    dense_burst: { n: 32, d: 0.25, s: 99, m: 'burst', f: 5, a: 2.0, t: 10, label: 'Dense Burst', desc: 'High connectivity, fast bursting input' },
+    minimal: { n: 8, d: 0.2, s: 1, m: 'sine', f: 1, a: 0.8, t: 15, label: 'Minimal', desc: 'Tiny network, easy to observe individual neurons' },
+    cortical: { n: 36, d: 0.18, s: 55, m: 'ramp', f: 4, a: 1.2, t: 12, label: 'Cortical-like', desc: 'Larger network with ramping input' },
+  };
+  const [preset, setPreset] = useState('default');
+
+  const applyPreset = (key: string) => {
+    const p = presets[key];
+    if (!p) return;
+    setPreset(key);
+    setRunning(false);
+    setNNeurons(p.n);
+    setDensity(p.d);
+    setSeed(p.s);
+    setMode(p.m);
+    setFreq(p.f);
+    setAmplitude(p.a);
+    setTauM(p.t / 1000);
+  };
+
   return (
     <div className="playground-wrapper">
       {/* Banner */}
       <div className="playground-banner">
         <span className="playground-badge">DEMO</span>
         <span>This is a simplified simulation for exploration. It uses random weights and a toy graph — not the real MaleCNS connectome.</span>
+      </div>
+
+      {/* Presets */}
+      <div className="playground-presets">
+        <span className="presets-label">Quick demos</span>
+        <div className="presets-row">
+          {Object.entries(presets).map(([key, p]) => (
+            <button key={key} className={`preset-btn ${preset === key ? 'active' : ''}`}
+              onClick={() => applyPreset(key)} title={p.desc}>
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Controls */}

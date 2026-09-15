@@ -131,7 +131,7 @@ the authoritative validation environment:
 - [ ] API-doc generation from Python docstrings.
 - [ ] Versioned documentation.
 - [ ] Keras high-level adapter (written, CI-verified pending — see WRITTEN section).
-- [ ] Surrogate-gradient training through spiking dynamics.
+- [x] Surrogate-gradient training through spiking dynamics.
 - [ ] Rust streaming graph builder; parallel construction; benchmark suite.
 - [ ] Configure GitHub OIDC trusted publishing on PyPI.
 - [ ] Documentation hosting domain and analytics endpoint (pending Pages).

@@ -95,7 +95,7 @@ low-level APIs remain unchanged.
 - [x] First-class `axonweave.readout` package: `ClassificationReadout`, `RegressionReadout`, `TokenReadout`, `ActionReadout` (explicit `n_source` guards, reference SGD `update()`, top-level re-exports).
 - [ ] Keras high-level adapter (`axonweave.keras.BrainLayer`).
 - [ ] JAX high-level adapter.
-- [ ] Surrogate-gradient training through spiking dynamics.
+- [x] Surrogate-gradient training through spiking dynamics.
 
 ## Phase 4 detail — Rust streaming graph builder roadmap
 
