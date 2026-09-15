@@ -1,6 +1,6 @@
 # Connectome
 
-One-sentence purpose: explain the graph representation — nodes, edges, weights, sparsity and identity — and the APIs to inspect it.
+How the MaleCNS connectome is represented internally as a sparse directed graph, and the APIs for inspecting its structure without loading anything dense.
 
 ## Representation
 

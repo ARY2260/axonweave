@@ -8,5 +8,9 @@ from __future__ import annotations
 from .image import ImageEncoder
 from .token import TokenEncoder
 from .sensor import SensorEncoder
+from .timeseries import TimeSeriesEncoder, VectorEncoder
 
-__all__ = ["ImageEncoder", "TokenEncoder", "SensorEncoder"]
+__all__ = [
+    "ImageEncoder", "TokenEncoder", "SensorEncoder",
+    "TimeSeriesEncoder", "VectorEncoder",
+]

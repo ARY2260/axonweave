@@ -107,6 +107,26 @@ for (const f of files) {
   }
 }
 
+// 4. Authoring scaffolding must never ship. These are writer-facing notes
+//    ("One-sentence purpose: ...", "TODO(writer): ...") that describe what a
+//    page should contain; they are meta-commentary for editors, not content
+//    for readers, and leak easily into published pages. Checked on the raw
+//    markdown so the failure names the exact source file.
+const SCAFFOLD_PATTERNS = [
+  [/^One-sentence purpose:/im, 'writer scaffold: "One-sentence purpose:" line'],
+  [/^TODO\((writer|author)\)\s*:/im, 'writer scaffold: "TODO(writer/author):" line'],
+  [/^\[DRAFT\]/im, 'writer scaffold: "[DRAFT]" marker'],
+];
+for (const f of files) {
+  const md = readFileSync(join(contentDir, f), 'utf8');
+  for (const [re, label] of SCAFFOLD_PATTERNS) {
+    if (re.test(md)) {
+      console.error(`FAIL ${f}: ${label} leaked into page source`);
+      failures++;
+    }
+  }
+}
+
 console.log(`render check: ${files.length} pages, ${callouts} callouts, ${docLinks} internal links, ${inlineCode} code spans`);
 if (failures) {
   console.error(`render check FAILED with ${failures} problem(s)`);

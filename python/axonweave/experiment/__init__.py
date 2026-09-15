@@ -188,7 +188,7 @@ class Agent:
             weights_shape=np.asarray(W.shape), body_ids=self.brain.graph.body_ids,
         )
         meta = {
-            "axonweave_version": axonweave.__version__ if hasattr(axonweave, "__version__") else "0.1.0",
+            "axonweave_version": axonweave.__version__ if hasattr(axonweave, "__version__") else "0.2.0",
             "substrate": getattr(self.brain, "substrate_id", "male-cns:v1.0"),
             "graph_fingerprint": substrate_fingerprint(self.brain.graph),
             "n_neurons": int(self.brain.n_neurons),

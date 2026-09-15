@@ -116,7 +116,9 @@ class ConnectomeBlock:
                 f"AXW010: expected last dimension {self.n_active}, got {xa.shape[-1]}"
             )
         np_x = np.asarray(xa)
-        W = self.brain.graph.weights if self.selection is None else self.selection.weights()
+        # The layer caches the (possibly selection-restricted) CSR; reuse it
+        # instead of recomputing selection.weights() on every call.
+        W = self.layer.graph_weights
         n = self.n_active
         batch_shape = np_x.shape[:-1]
         if self._state is None:

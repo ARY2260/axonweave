@@ -26,7 +26,9 @@ def _sha256(path: Path, chunk_size: int = 8 * 1024 * 1024) -> str:
 def _do_install(args):
     if args.name != MALE_CNS["id"]:
         raise SystemExit(f"AXW101: unsupported substrate {args.name!r}; available: male-cns:v1.0")
-    brain = install_male_cns(args.root, args.include_synapses, args.include_stats)
+    brain = install_male_cns(
+        args.root, args.include_synapses, args.include_stats, args.disk_backed,
+    )
     print(f"Installed {args.name}: {brain.n_neurons} neurons, {brain.graph.n_edges} graph edges")
     return 0
 
@@ -115,6 +117,11 @@ def _do_verify(args):
         failures.append("graph: neuron count mismatch")
     if graph.get("n_edges") != brain.graph.n_edges:
         failures.append("graph: edge count mismatch")
+    recorded_fp = graph.get("fingerprint")
+    if recorded_fp:
+        from axonweave.core.brain import substrate_fingerprint
+        if substrate_fingerprint(brain.graph) != recorded_fp:
+            failures.append("graph: content fingerprint mismatch")
     if failures:
         raise SystemExit("AXW002: verification failed\n  " + "\n  ".join(failures))
     print(f"Substrate {args.name} verified: {len(records)} files ok")
@@ -189,6 +196,10 @@ def main(argv=None):
     install.add_argument("name")
     install.add_argument("--include-stats", action="store_true")
     install.add_argument("--include-synapses", action="store_true")
+    install.add_argument(
+        "--disk-backed", action="store_true",
+        help="stream-build the graph with bounded RAM instead of in-memory assembly",
+    )
     ss.add_parser("list", help="list installed substrates")
     info = ss.add_parser("info", help="show substrate details")
     info.add_argument("name")

@@ -1,0 +1,6 @@
+{
+  "graph_fingerprint": "5503adc426eb56c168777acf177760e4f5c2415731bd7944f704abbcd29a2b82",
+  "n_neurons": 300,
+  "n_edges": 1774,
+  "builder": "disk-backed"
+}

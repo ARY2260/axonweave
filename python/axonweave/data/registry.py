@@ -40,6 +40,24 @@ class SubstrateRegistry:
             neurotransmitters=optional("neurotransmitters.feather"),
             receptors=optional("receptors.json"),
         )
+        # If the manifest recorded the built graph's content fingerprint,
+        # re-derive it from the stored artifact and refuse a mismatched graph
+        # (AXW002) — catches corrupted or swapped graph.npz files.
+        graph_meta = meta.get("graph") or {}
+        recorded_fp = graph_meta.get("fingerprint")
+        if recorded_fp:
+            from .checksums import verify_graph_fingerprint
+            from ..core.brain import substrate_fingerprint
+            observed_fp = substrate_fingerprint(brain.graph)
+            # Compare against the manifest's own recorded build fingerprint...
+            if observed_fp != recorded_fp:
+                raise DatasetIntegrityError(
+                    f"AXW002: stored graph fingerprint does not match the graph "
+                    f"artifact for {name!r}: manifest={recorded_fp}, observed={observed_fp}. "
+                    f"Reinstall the substrate."
+                )
+            # ...and against the declared upstream slot when one exists.
+            verify_graph_fingerprint(observed_fp, name)
         # Selection tables live on the graph so graph.neurons can resolve
         # by_type()/by_region() without re-reading the Feather file.
         brain.graph.selection_tables = selection_tables

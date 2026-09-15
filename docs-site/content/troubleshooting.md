@@ -1,5 +1,7 @@
 # Troubleshooting
 
+Symptom-first fixes for the errors you are most likely to hit, keyed by the `AXW###` code you saw in the traceback.
+
 ## `AXW001` substrate not installed
 
 Run:

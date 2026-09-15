@@ -31,6 +31,31 @@ def _resolve_device(device):
 
 
 class ConnectomeLayer:
+    """Sparse biological connectome as a JAX module (experimental).
+
+    Propagates batched neuron activity through the substrate's CSR topology
+    via a JAX ``BCOO`` sparse matrix: ``y = (x @ W^T) * gain + bias`` with W's
+    sparsity pattern fixed to the connectome (trainable edges change values,
+    never the topology — JAX transformations such as ``jax.grad`` apply to
+    ``edge_weight`` through functional updates, not in-place mutation).
+
+    Args:
+        graph: the ``ConnectomeGraph`` (or a ``NeuronSelection``-derived graph).
+        trainable_edges: kept for API symmetry with the torch/keras adapters;
+            the layer itself is functional, so edge values are immutable state
+            and gradient-based updates happen outside the layer.
+        gain: scalar output gain (static, not trained in place).
+        bias: per-neuron additive bias (zeros; supply values by replacing
+            ``layer.bias`` functionally).
+        signal_policy: optional ``SignalPolicy``. The sparse layer computes
+            structural propagation only; wiring a receptor/sign model here is
+            not yet supported, so passing one raises ``AXW007`` instead of
+            being silently ignored.
+        selection: ``NeuronSelection`` restricting the layer to a sub-network.
+        device: ``jax.Device`` or device string (AXW004 if the backend
+            rejects it).
+    """
+
     def __init__(
         self,
         graph,
@@ -41,6 +66,16 @@ class ConnectomeLayer:
         selection=None,
         device=None,
     ):
+        if signal_policy is not None:
+            import warnings
+
+            warnings.warn(
+                "AXW007: ConnectomeLayer computes structural sparse propagation "
+                "only; signal_policy is accepted for API symmetry but is not "
+                "applied. Use the signals/receptors APIs for receptor and "
+                "neurotransmitter models.",
+                stacklevel=2,
+            )
         if selection is not None:
             if not isinstance(selection, NeuronSelection):
                 raise ApiUsageError(
@@ -52,6 +87,7 @@ class ConnectomeLayer:
             sub = graph.weights
             self.selection_body_ids = None
         self.n_neurons = sub.shape[0]
+        self.graph_weights = sub
         self.device = _resolve_device(device)
         w = BCOO.from_scipy_sparse(sub)
         w = w.sum_duplicates(remove_zeros=False)
@@ -68,6 +104,21 @@ class ConnectomeLayer:
         self.signal_policy = signal_policy
         self.trainable_edges = trainable_edges
         self.shape = (self.n_neurons, self.n_neurons)
+
+    def __repr__(self) -> str:
+        parts = [
+            f"n_neurons={self.n_neurons}",
+            f"n_edges={int(self.edge_weight.shape[0])}",
+        ]
+        if self.trainable_edges:
+            parts.append("trainable_edges=True")
+        if self.bias is not None:
+            parts.append("bias=True")
+        if self.selection_body_ids is not None:
+            parts.append(f"selection={len(self.selection_body_ids)} neurons")
+        if self.device is not None:
+            parts.append(f"device={self.device}")
+        return f"ConnectomeLayer({', '.join(parts)})"
 
     def __call__(self, x):
         xa = jnp.asarray(x)

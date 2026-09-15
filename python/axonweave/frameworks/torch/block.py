@@ -51,10 +51,12 @@ class ConnectomeBlock(nn.Module):
         if dynamics not in ("rate",) and n_steps != 1 and trainable_edges:
             import warnings
             warnings.warn(
-                "AXW007: multi-step spiking dynamics with trainable_edges is not "
-                "surrogate-gradient enabled yet; gradients through the spiking "
-                "path will be zero. Use dynamics='rate' or n_steps=1 for "
-                "trainable edge learning.",
+                "AXW007: ConnectomeBlock's reference path runs dynamics on numpy "
+                "arrays and cannot carry torch gradients across steps. For "
+                "gradient-based training through spiking dynamics use "
+                "BrainModel (which routes through the differentiable torch "
+                "path) with SurrogateLIF/SurrogateAdaptiveLIF dynamics, or "
+                "keep n_steps=1 with dynamics='rate' here.",
                 stacklevel=2,
             )
         self.brain = brain
@@ -95,7 +97,34 @@ class ConnectomeBlock(nn.Module):
 
 
 class BrainModel(nn.Module):
-    """High-level supervised facade: Input -> connectome dynamics -> Readout.
+    """High-level model: Encoder -> stateful connectome runtime -> Readout.
+
+    Preferred construction is explicit and declarative — the encoder,
+    dynamics, and readout are passed in and the wiring is done for you:
+
+        model = BrainModel(
+            brain=brain,
+            encoder=VectorEncoder(8, 256),
+            dynamics=LIF(),
+            readout=ClassificationHead(256, 4),
+        )
+
+    The previous interface (``connect(Input(...))`` / ``connect(Readout(...))``)
+    keeps working; constructor injection takes precedence when both are used.
+
+    Temporal semantics (backend-neutral):
+
+        model.reset_state()
+        for x_t in stream:
+            y_t = model.step(x_t)          # state persists between steps
+
+        seq = model.forward_sequence(x)    # == sequential step() calls
+        state = model.get_state()          # branch / replay
+        model.step(x); model.set_state(state)
+        model.detach_state()               # truncated BPTT boundary
+
+    Exposes ``model.encoder``, ``model.brain``, ``model.dynamics``,
+    ``model.readout`` and ``model.runtime``.
 
     Training modes:
       - Mode 1 (frozen): ``trainable_edges=False`` — only interface params train.
@@ -107,13 +136,30 @@ class BrainModel(nn.Module):
     def __init__(self, brain, dynamics: str | DynamicsModel = "rate",
                  trainable_edges: bool = False, train_dynamics: bool = False,
                  learning: str | None = None, seed: int | None = None,
-                 selection: NeuronSelection | None = None):
+                 selection: NeuronSelection | None = None,
+                 encoder=None, readout=None):
         super().__init__()
         self.brain = brain
         self.selection = selection
-        self.block = ConnectomeBlock(brain, dynamics=dynamics,
+        resolved = resolve_dynamics(dynamics)
+        self.block = ConnectomeBlock(brain, dynamics=resolved,
                                      trainable_edges=trainable_edges, seed=seed,
                                      selection=selection)
+        # Stateful runtime view over the same substrate/dynamics. For
+        # surrogate-spiking dynamics this is the differentiable torch cell
+        # (BPTT-capable); otherwise it is the reference-semantics bridge.
+        from .bptt import TorchSurrogateLIF
+        from .runtime_bridge import TorchStatefulRuntime
+        from ...dynamics import SurrogateAdaptiveLIF, SurrogateLIF
+
+        self._differentiable = isinstance(
+            resolved, (SurrogateLIF, SurrogateAdaptiveLIF))
+        if self._differentiable:
+            self.runtime = TorchSurrogateLIF(
+                resolved, trainable_edges=trainable_edges,
+            ).attach_graph(self.block.layer.graph_weights)
+        else:
+            self.runtime = TorchStatefulRuntime(brain.graph, resolved)
         # Interface projections target the block's neuron space (sub-network
         # when a selection is given, full brain otherwise).
         self._io_size = self.block.n_active
@@ -122,22 +168,57 @@ class BrainModel(nn.Module):
         self.train_dynamics = train_dynamics
         self.learning = learning
         self.seed = seed
+        if encoder is not None:
+            self.connect(encoder)
+        if readout is not None:
+            self.connect(readout)
+        self._encoder_module = encoder
+        self._readout_module = readout
 
     @property
     def n_active(self) -> int:
         """Neurons the model computes over (sub-network size or full brain)."""
         return self._io_size
 
+    @property
+    def encoder(self):
+        """The declared encoder (None when wired via connect(Input))."""
+        return self._encoder_module
+
+    @property
+    def dynamics(self):
+        """The active dynamics model."""
+        return self.block.dynamics
+
     def connect(self, module):
-        """Register an Input or Readout interface module."""
+        """Register an Input/Readout interface or a protocol encoder/readout."""
         from .interfaces import Input, Readout
 
         if isinstance(module, Input):
             self.input_proj = nn.Linear(module.size, self._io_size)
         elif isinstance(module, Readout):
             self.readout = nn.Linear(self._io_size, module.size)
+        elif hasattr(module, "input_shape") and hasattr(module, "output_size"):
+            # Encoder-protocol object: project its declared output_size onto
+            # the connectome neuron space.
+            if len(module.input_shape) != 1:
+                raise ApiUsageError(
+                    f"AXW010: encoder input_shape must be 1-D for BrainModel; "
+                    f"got {module.input_shape}. Use forward_sequence for "
+                    "time-series encoders.")
+            self.input_proj = nn.Linear(module.output_size, self._io_size)
+            self._encoder_module = module
+        elif hasattr(module, "n_source") or hasattr(module, "n_outputs") or hasattr(module, "n_classes"):
+            n_out = getattr(module, "n_classes", None) or getattr(
+                module, "n_outputs", None) or getattr(module, "vocab_size", None)
+            if n_out is None:
+                raise ApiUsageError("AXW010: readout module lacks a declared output size")
+            self.readout = nn.Linear(self._io_size, n_out)
+            self._readout_module = module
         else:
-            raise ApiUsageError("AXW010: connect() accepts Input or Readout instances")
+            raise ApiUsageError(
+                "AXW010: connect() accepts Input, Readout, or encoder/readout "
+                "protocol objects")
         return self
 
     def forward(self, x):
@@ -147,6 +228,50 @@ class BrainModel(nn.Module):
         if self.readout is not None:
             y = self.readout(y)
         return y
+
+    # -- temporal semantics ---------------------------------------------------
+
+    def reset_state(self) -> "BrainModel":
+        """Clear carried state (episode/session boundary)."""
+        self.runtime.reset_state()
+        self.block._state = None
+        return self
+
+    def step(self, x_t):
+        """One timestep (encoder -> runtime -> readout); state persists."""
+        if self.input_proj is not None:
+            x_t = self.input_proj(x_t)
+        y = self.runtime.step(x_t)
+        if self.readout is not None:
+            y = self.readout(y)
+        return y
+
+    def forward_sequence(self, x):
+        """Run ``[..., T, F]``; returns ``[..., T, output]``.
+
+        Equivalent to sequential :meth:`step` calls from a reset state under
+        deterministic execution (enforced by tests on the reference path).
+        """
+        if self.input_proj is not None:
+            x = self.input_proj(x)
+        y = self.runtime.forward_sequence(x)
+        if self.readout is not None:
+            y = self.readout(y)
+        return y
+
+    def get_state(self):
+        """Deep-copied runtime state (branchable, replayable)."""
+        return self.runtime.get_state()
+
+    def set_state(self, state) -> "BrainModel":
+        """Restore a previously captured state."""
+        self.runtime.set_state(state)
+        return self
+
+    def detach_state(self) -> "BrainModel":
+        """Detach carried gradients (truncated BPTT boundary)."""
+        self.runtime.detach_state()
+        return self
 
     def fit(self, loader, epochs: int = 1, lr: float = 1e-3, optimizer=None):
         """Standard supervised loop over (x, y) batches from a DataLoader/iterator."""

@@ -7,7 +7,12 @@ from urllib.parse import urljoin
 import requests
 
 from .builder import build_graph
-from .checksums import expected_checksum, md5_base64_of_file, verify_checksum
+from .checksums import (
+    expected_checksum,
+    md5_base64_of_file,
+    verify_checksum,
+    verify_graph_fingerprint,
+)
 from .manifest import MALE_CNS
 from .registry import SubstrateRegistry
 
@@ -45,7 +50,9 @@ def _download(url: str, destination: Path, session=None) -> tuple[Path, str | No
     partial.replace(destination)
     return destination, server_md5
 
-def install_male_cns(root=None, include_synapses=False, include_stats=False):
+def install_male_cns(
+    root=None, include_synapses=False, include_stats=False, disk_backed=False,
+):
     registry = SubstrateRegistry(root)
     target = registry.path(MALE_CNS["id"])
     raw = target / "source"
@@ -78,7 +85,19 @@ def install_male_cns(root=None, include_synapses=False, include_stats=False):
         }
 
     graph_path = target / "graph.npz"
-    graph = build_graph(raw / MALE_CNS["files"]["connectivity"], graph_path)
+    if disk_backed:
+        from .streaming_builder import DiskBackedGraphBuilder
+
+        with DiskBackedGraphBuilder(
+            raw / MALE_CNS["files"]["connectivity"], graph_path,
+        ) as builder:
+            graph = builder.build()
+    else:
+        graph = build_graph(raw / MALE_CNS["files"]["connectivity"], graph_path)
+    verify_graph_fingerprint(
+        json.loads(graph_path.with_suffix(".json").read_text(encoding="utf-8"))["graph_fingerprint"],
+        MALE_CNS["id"],
+    )
 
     import shutil
     for key in ("annotations", "neurotransmitters"):
@@ -106,7 +125,14 @@ def install_male_cns(root=None, include_synapses=False, include_stats=False):
         "source": MALE_CNS["source"],
         "base_url": MALE_CNS["base_url"],
         "files": observed,
-        "graph": {"n_neurons": graph.n_neurons, "n_edges": graph.n_edges},
+        "graph": {
+            "n_neurons": graph.n_neurons,
+            "n_edges": graph.n_edges,
+            "fingerprint": json.loads(
+                graph_path.with_suffix(".json").read_text(encoding="utf-8")
+            )["graph_fingerprint"],
+            "builder": "disk-backed" if disk_backed else "in-memory",
+        },
         "status": "installed",
     }
     (target / "manifest.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")

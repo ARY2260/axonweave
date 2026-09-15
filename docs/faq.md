@@ -1,6 +1,5 @@
 # FAQ
 
-One-sentence purpose: direct answers to the questions newcomers actually ask, matching the real implementation.
 
 ## Is the MaleCNS connectome the entire model?
 

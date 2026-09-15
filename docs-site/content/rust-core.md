@@ -107,6 +107,17 @@ The extension is built only in CI, so source installs and local checkouts withou
 
 A read looks up each edge's source slot at `write_pos − delay_ticks − 1` (mod `n_slots`), accumulating `pre[slot][pre_idx[k]] · weight[k]` into `post_idx[k]`. `delay_ticks_from_ms` converts milliseconds to integer ticks by rounding and clamping to `[0, n_slots − 1]` where `n_slots = ceil(max_delay_ms/dt) + 1`. `apply_delays` is the stateless single-shot form used by the public propagation path.
 
+## Graph construction performance
+
+There are two graph-build paths with byte-identical output (same CSR, same `csr_fingerprint`):
+
+- **In-memory** (`data/builder.py`, default): batches are concatenated in RAM before the CSR reduction.
+- **Disk-backed** (`data/streaming_builder.py`, `axonweave substrate install --disk-backed`): edges stream to scratch memmaps batch-by-batch and are reduced via `native.build_csr_from_coo`, so Python memory stays O(batch) regardless of edge count.
+
+The compiled `build_csr` kernel is the hot reduction in the disk-backed path whenever the native core is present. The benchmark suite `benchmarks/bench_graph_build.py` measures both paths (wall time, Python allocation peak, peak RSS) and hard-fails if their fingerprints ever diverge — a correctness tripwire, not just a performance report. Rows can be appended to `benchmarks/results.jsonl` with `--jsonl` for longitudinal tracking.
+
+**Rust streaming roadmap** (PLAN.md Phase 4): native edge-LUT mapping and ID scanning, direct Arrow/IPC ingestion in Rust (arrow-rs), and parallel (rayon) CSR reduction — each kernel landing behind the standard contract (Rust kernel + `_numpy_*` reference + dispatcher + equivalence test) and gated on the benchmark's acceptance criteria: identical fingerprints, ≥2× wall-time improvement at MaleCNS scale, and peak RSS flat in edge count.
+
 ## Adding a new primitive
 
 1. Write the Rust kernel in the appropriate `rust/src/*.rs` and register the pyfunction in that module's `register` (listed in `lib.rs`).

@@ -1,6 +1,5 @@
 # Device Support
 
-One-sentence purpose: state factually which devices work and why — AxonWeave delegates execution to the host framework, and accelerator compatibility depends on that framework's sparse-operator support.
 
 ## The device principle
 

@@ -15,6 +15,10 @@ Status legend:
 - [x] Architecture and AI-agent governance documents (`AGENTS.md`, `CODE_TOKENS.md`, docs-site `AGENTS.md`).
 - [x] Frontend design system (`docs-site/DESIGN.md`, Google DESIGN.md spec, token linting).
 - [x] Documentation typography: IBM Plex Sans (UI/body/headings) + Iosevka Charon Mono (code) loaded via Google Fonts with preconnect and `display=swap`; `--font-ui`/`--font-code` CSS variables with full system fallbacks; tabular-nums for API-reference tables; DESIGN.md + tokens.css kept in sync (lint 0 errors).
+- [x] Code-block readability pass: language chip reserved as a header tab (blocks grow a top padding band; no overlap with code or line-number rail), brighter code text / gutter numerals / chip and comment colors, combined gutter+chip layout rule.
+- [x] Authoring-scaffolding guard: `verify-render.mjs` check #4 fails CI on leaked writer notes ("One-sentence purpose:", `TODO(writer/author):`, `[DRAFT]`) in page source.
+- [x] Reader-facing intro sentence added to the 14 pages that opened directly with a heading (api-reference, backends, brain, configuration, connectome, core-concepts, devices, errors, faq, getting-started, installation, release-engineering, scientific-reference, troubleshooting); intros verified against the real APIs (AXW000–AXW101 codes, `AXONWEAVE_HOME`, `brain.info/capabilities/task/agent`, install flags); one overclaim ("run one step") corrected.
+- [x] Leaked "One-sentence purpose:" scaffolding removed from all 13 affected pages in both `docs-site/content/` and the `docs/` mirror.
 - [x] SVG logo and favicon.
 - [x] Browser-based Markdown documentation renderer.
 - [x] Sidebar, navigation, TOC, theme switcher and copy buttons.
@@ -28,6 +32,8 @@ Status legend:
 - [x] `.gitignore` covering caches, builds and secrets.
 
 ### Provisioning and data pipeline
+- [x] Disk-backed streaming graph builder (`data/streaming_builder.py`): bounded-RAM two-pass build (ID scan + edge memmap streaming) reducing to CSR via the native core; output byte-compatible with `build_graph` (proven by equivalence test); used by `install_male_cns(disk_backed=True)` / `axonweave substrate install --disk-backed`.
+- [x] Built-graph fingerprint validation: `install` records the canonical `csr_fingerprint` in the manifest; `registry.load()` re-derives it and refuses corrupted/swapped `graph.npz` (AXW002); `substrate verify` checks it; declared upstream slot `GRAPH_FINGERPRINTS` (None until measured upstream, no fabricated digests).
 - [x] Resumable downloads (`.part` files, HTTP Range requests).
 - [x] Stable upstream checksum registry (GCS MD5 per file) enforced at install; sha256 recorded.
 - [x] `AXW002` integrity abort before substrate activation on checksum mismatch.
@@ -39,6 +45,8 @@ Status legend:
 - [x] NumPy/SciPy reference layer with ND batched input.
 - [x] PyTorch sparse `ConnectomeLayer` (trainable edges, gain, bias, AXW004 device errors).
 - [x] TensorFlow/Keras sparse `ConnectomeLayer`.
+- [x] Adapter API hardening (all three backends: torch, keras, jax): `ApiUsageError` (AXW010) consistently for selection type errors; `signal_policy=` accepted for API symmetry but raises an explicit AXW007 warning instead of being silently ignored (scientific-honesty rule); dtype-preserving sparse path (torch float64 round-trip); `extra_repr`/`__repr__` structure report; `get_config()` Keras serialization with n_neurons provenance (keras); vectorized index construction; `graph_weights` property exposing the backing CSR (fixes `ConnectomeBlock`/`KerasConnectomeBlock` selection path reading an unset attribute; JAX `ConnectomeBlock` also no longer recomputes `selection.weights()` per call).
+- [x] Backends doc page documents per-adapter layer options, the AXW007 signal_policy contract, JAX functional semantics, and a cross-backend behavioral-parity section; mirrored to `docs/`.
 - [x] Cross-backend numerical equivalence tests (NumPy = PyTorch = Keras).
 - [x] Ruff lint clean across `python/` and `tests/`.
 - [x] Rust core dispatch layer (`python/axonweave/native.py`): compiled `_native` kernels backed by `_numpy_*` references; public API identical with or without the extension.
@@ -84,6 +92,7 @@ Status legend:
 - [x] Source-distribution build check.
 - [x] Rust/PyO3 CI.
 - [x] Native-equivalence CI lane (build wheel → run `test_native_runtime.py` → full fallback suite against the wheel).
+- [x] Benchmark suite (`benchmarks/bench_graph_build.py`): in-memory vs disk-backed graph build (wall time, Python allocation peak, peak RSS), fingerprint-equality tripwire, JSONL history via `--jsonl`; 7 tests in `tests/test_bench_graph_build.py`.
 - [x] Docs CI: typecheck → design-token lint → build → artifact verification.
 - [x] Single consolidated GitHub Pages deploy workflow with `configure-pages(enablement: true)`.
 - [x] `.gitignore` reviewed; no secrets, no raw data, no build artifacts committed.
@@ -111,6 +120,8 @@ the authoritative validation environment:
 
 ## NOT STARTED
 
+- [ ] Rust streaming graph builder kernels per PLAN.md Phase 4 detail (edge-LUT mapping, native ID scan, Arrow/IPC ingestion, parallel CSR reduction) with benchmark acceptance criteria.
+- [ ] Capture the real upstream graph fingerprint for male-cns:v1.0 from an independently verified build and fill the `GRAPH_FINGERPRINTS` slot (enforcement activates automatically).
 - [ ] Run all CI jobs on GitHub and fix runner-specific failures.
 - [ ] Verify Python 3.14 compatibility for every dependency/backend.
 - [ ] GPU/TPU self-hosted or vendor runners; sparse-kernel tests on accelerators.
@@ -128,6 +139,16 @@ the authoritative validation environment:
 - [ ] Independent scientific review; reproducibility/benchmark/limitations reports; stable v1.0 API.
 
 ## COMPLETED (framework phase additions)
+
+### Temporal Runtime Alpha (v0.2.0)
+- [x] `axonweave.runtime`: `ConnectomeRuntime` with explicit `NeuronState`/`SynapticState`/`PlasticityState`/`RuntimeState`; `step()` persistence, `forward_sequence()` == sequential `step()` equivalence (Rate/LIF/AdaptiveLIF), `get_state`/`set_state` replay, `detach_state`, `memory_estimate`; 20 tests (`tests/test_runtime.py`).
+- [x] Encoder protocol (`input_shape`/`output_size`/`dtype`) + `VectorEncoder`/`TimeSeriesEncoder` (windowed); 8 tests (`tests/test_temporal_encoders.py`).
+- [x] Torch `TorchStatefulRuntime` bridge + stateful `BrainModel` (constructor injection + temporal API); CI-verified pending (`tests/test_torch_brain_model_temporal.py`).
+- [x] `brain.memory_estimate(dtype, state)`.
+- [x] `docs/development/STATUS.md` three-state audit (IMPLEMENTED / CI-VERIFIED / SCIENTIFICALLY-VALIDATED).
+- [x] Version bump 0.1.0 → 0.2.0 (`__init__.py`, `rust/Cargo.toml`, native `__version__`, checkpoint fallback).
+- [x] BPTT/surrogate gradient routing: `frameworks/torch/bptt.py` — `SpikeSurrogate` (hard threshold forward, surrogate backward mirroring `native.surrogate_backward`, equivalence-tested), torch-native recurrent LIF/adaptive-LIF cells with persistent sparse propagation (no per-step COO rebuilds, plan §12); `BrainModel` auto-routes to the differentiable path for `SurrogateLIF`/`SurrogateAdaptiveLIF`; stale AXW007 multi-step warning replaced with actionable routing guidance; 16 CI-pending tests (`tests/test_torch_bptt.py`, `tests/test_torch_brain_model_bptt.py`: grads reach edge weights/gain/readout through T steps, early-timestep gradient contribution, detach truncation, replay, training-loop loss reduction, truncated-BPTT chunk training).
+- [x] §39 time-series end-to-end example (`examples/time_series_forecasting.py`): TimeSeriesEncoder -> recurrent connectome -> RegressionReadout vs MLP/RNN/LSTM/GRU baselines, with biological/assumed/learned/task-specific labeling and `run/metrics.json` output.
 
 ### Introspection and selection (Phase 6)
 - [x] `brain.info()` / `BrainInfo` with `summary()`; `brain.capabilities()` machine-readable report.

@@ -1,5 +1,7 @@
 # API Reference
 
+Complete function-level reference for the public AxonWeave surface — loading, selection, layers, tasks and errors — with each entry mirroring the live docstrings.
+
 ## `axonweave.load`
 
 ```python

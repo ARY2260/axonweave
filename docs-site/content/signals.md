@@ -1,7 +1,5 @@
 # Signals & Receptors
 
-One-sentence purpose: explain how neurotransmitter data, signal policy and receptor models combine into effective synaptic influence — and why polarity is never hard-coded.
-
 :::DOC-WARN
 Receptor models and synaptic delays are planned interfaces, not yet implemented. The `SignalPolicy` mechanism exists today.
 :::

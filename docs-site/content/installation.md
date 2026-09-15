@@ -1,6 +1,6 @@
 # Installation
 
-One-sentence purpose: install the AxonWeave Python package, optional framework extras, and the versioned biological substrate — as three separate concerns.
+AxonWeave installs as three separate concerns — the Python package, optional framework extras, and the versioned biological substrate — so you only download what you use.
 
 ## The three layers
 
@@ -22,7 +22,7 @@ Wheels for Linux, macOS and Windows ship the compiled Rust core (`axonweave._nat
 
 ```python
 import axonweave
-print(axonweave.load("male-cns:v1.0").info().native_backend)  # "0.1.0" (extension) or "python-fallback"
+print(axonweave.load("male-cns:v1.0").info().native_backend)  # "0.2.0" (extension) or "python-fallback"
 ```
 
 See [Rust Core](rust-core.md) for the dispatch contract and [Backends](backends.md) for backend coverage.

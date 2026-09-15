@@ -51,6 +51,7 @@ import limitationsMd from '../content/limitations.md?raw';
 import errorsMd from '../content/errors.md?raw';
 import readoutsMd from '../content/readouts.md?raw';
 import rustCoreMd from '../content/rust-core.md?raw';
+import runtimeMd from '../content/runtime.md?raw';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
@@ -62,6 +63,7 @@ const pages: Page[] = [
  {slug:'brain',label:'Biological Brain',source:brainMd,section:'Concepts'},
  {slug:'connectome',label:'Connectome',source:connectomeMd,section:'Concepts'},
  {slug:'dynamics',label:'Neuron Dynamics',source:dynamicsMd,section:'Concepts'},
+ {slug:'runtime',label:'Temporal Runtime',source:runtimeMd,section:'Concepts'},
  {slug:'signals',label:'Signals & Receptors',source:signalsMd,section:'Concepts'},
  {slug:'encoders',label:'Encoders & Decoders',source:encodersMd,section:'Concepts'},
  {slug:'readouts',label:'Readouts',source:readoutsMd,section:'Concepts'},
@@ -118,7 +120,7 @@ const BASE_PREFIX = BASE.endsWith('/') ? BASE.slice(0,-1) : BASE;
 const hrefFor = (slug:string) => `${BASE}${slug==='index'?'':slug}`;
 const pathSlug = () => location.pathname.replace(BASE_PREFIX,'').replace(/^\//,'').replace(/\/$/,'') || 'index';
 
-const VERSIONS = ['stable (0.1.0)','nightly'];
+const VERSIONS = ['stable (0.2.0)','nightly'];
 
 function CodeEnhancer({slug}:{slug:string}){
  // Re-run on every page change; slug is the dependency.
@@ -130,12 +132,14 @@ function CodeEnhancer({slug}:{slug:string}){
      // Language label chip (e.g. python / bash / toml) from the fence class.
      const codeEl=pre.querySelector('code');
      const lang=[...((codeEl?.className||'').match(/language-([\w-]+)/)||[])][1];
+     let hasChip=false;
      if(lang && lang!=='text' && lang!=='none'){
        const chip=document.createElement('span');
        chip.className='lang-chip';
        chip.setAttribute('aria-hidden','true');
        chip.textContent=lang;
        pre.appendChild(chip);
+       hasChip=true;
      }
      // Line-number gutter for long Python blocks (>= 8 lines). The rail is
      // added to the wrapper (outside the scrolling pre) so it stays pinned
@@ -155,7 +159,7 @@ function CodeEnhancer({slug}:{slug:string}){
      };
      pre.appendChild(button);
      // Horizontal-scroll hint for blocks wider than their container.
-     const wrap=document.createElement('div'); wrap.className='pre-wrap'+(hasGutter?' has-gutter':'');
+     const wrap=document.createElement('div'); wrap.className='pre-wrap'+(hasGutter?' has-gutter':'')+(hasChip?' has-chip':'');
      pre.replaceWith(wrap); wrap.appendChild(pre);
      const hint=document.createElement('span'); hint.className='scroll-hint'; hint.setAttribute('aria-hidden','true'); hint.textContent='scroll →';
      wrap.appendChild(hint);

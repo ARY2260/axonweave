@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="assets/logo.svg" alt="AxonWeave logo" width="120"/>
-  <p><strong>AxonWeave</strong> · v0.1.0</p>
+  <p><strong>AxonWeave</strong> · v0.2.0</p>
   <p><em>A woven neural axon mark — two interlaced strands crossing a central soma node.</em></p>
 </div>
 
@@ -27,7 +27,7 @@ It is designed around one separation: **the published biological substrate is so
 
 ## Install
 
-Current release: **v0.1.0** (see [`axonweave.__version__`](python/axonweave/__init__.py) — the single source of truth mirrored into wheel metadata, `CITATION.cff`, and the docs-site version menu).
+Current release: **v0.2.0** (see [`axonweave.__version__`](python/axonweave/__init__.py) — the single source of truth mirrored into wheel metadata, `CITATION.cff`, and the docs-site version menu).
 
 The Python package stays small. Multi-gigabyte biological source files are **not** embedded in the PyPI wheel.
 

@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: AxonWeave
-version: 0.1.0
+version: 0.2.0
 message: "If you use AxonWeave, cite the software and the upstream MaleCNS v1.0 release."
 authors:
   - family-names: "AxonWeave Contributors"

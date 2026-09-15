@@ -1,6 +1,6 @@
 # FAQ
 
-One-sentence purpose: direct answers to the questions newcomers actually ask, matching the real implementation.
+Direct answers to the questions newcomers actually ask, each verified against the real implementation rather than aspiration.
 
 ## Is the MaleCNS connectome the entire model?
 

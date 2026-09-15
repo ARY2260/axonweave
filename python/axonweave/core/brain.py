@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
+
 
 SUBSTRATE_ID = "male-cns:v1.0"
 
@@ -90,6 +92,39 @@ class BiologicalBrain:
             has_receptors=self.receptors is not None,
             native_backend=_ax.native_version(),
         )
+
+    def memory_estimate(self, dtype: str = "float32", state: str = "full") -> dict:
+        """Per-component memory footprint of executing this brain, in bytes.
+
+        Reports neuron state (one state vector per dynamics variable), edge
+        parameters (CSR data), and the totals. This is an estimate of the
+        *simulation* footprint — it deliberately does not encourage dense
+        projection matrices over the full connectome (use selections and
+        encoders to keep task interfaces small).
+        """
+        itemsize = np.dtype(dtype).itemsize
+        n = self.n_neurons
+        if state == "none":
+            neuron_vars = 0
+        else:
+            # LIF-shaped state: membrane + refractory (+ threshold for
+            # adaptive variants). Rate models carry only the clock.
+            neuron_vars = 2 if state == "full" else 1
+        neuron_bytes = neuron_vars * n * itemsize
+        edge_bytes = int(self.graph.weights.nnz * itemsize)
+        total = neuron_bytes + edge_bytes
+        return {
+            "n_neurons": n,
+            "n_edges": int(self.graph.weights.nnz),
+            "neuron_state": neuron_bytes,
+            "edge_parameters": edge_bytes,
+            "delay_buffer": 0,
+            "receptor_state": 0,
+            "plasticity_state": 0,
+            "total": total,
+            "dtype": dtype,
+            "state": state,
+        }
 
     def capabilities(self) -> dict:
         """Machine-readable capability map of this brain instance."""

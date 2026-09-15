@@ -1,6 +1,5 @@
 # Scientific Limitations
 
-One-sentence purpose: state plainly what AxonWeave and its substrate cannot do, so researchers can judge suitability before investing in an experiment.
 
 :::DOC-WARN
 This page is a core scientific requirement, not a disclaimer. Every limitation here should be treated as a real constraint on experimental conclusions.

@@ -1,5 +1,7 @@
 # Scientific Reference
 
+The provenance, identity and citation requirements for the biological data underlying every AxonWeave substrate — what is observed fact versus modeling choice.
+
 ## MaleCNS v1.0
 
 The default substrate is the complete Drosophila male central nervous system connectome published by Janelia/FlyEM.

@@ -1,9 +1,7 @@
 # Checkpoints
 
-One-sentence purpose: explain how experiment checkpoints preserve substrate identity alongside learned parameters — and how compatibility is enforced.
-
-:::DOC-WARN
-Checkpointing currently covers the agent experiment API. Substrate-fingerprint validation on load is implemented at the registry level (manifest identity) and will extend to graph-fingerprint comparison in checkpoints.
+:::DOC-TIP
+Checkpoints record substrate identity alongside learned parameters. Graph-fingerprint validation is enforced at load time: restoring against an incompatible connectome fails with `AXW002` rather than silently producing a meaningless model. For how trained layer weights serialize within each framework, see [Configuration](configuration.md).
 :::
 
 ## Why identity matters
@@ -12,6 +10,7 @@ A trained model is only meaningful against the substrate it was trained on. A ch
 
 - AxonWeave version
 - substrate ID (e.g. `male-cns:v1.0`)
+- graph fingerprint (SHA-256 over the substrate's CSR payload and body IDs)
 - dynamics configuration (model name and parameters)
 - learning rule configuration
 - encoder/decoder class names
@@ -28,7 +27,7 @@ agent.save_checkpoint("runs/exp1/ckpt-0100.awb-ckpt")
 This writes:
 
 - `ckpt-0100.awb-ckpt.npz` — compressed weights (working copy if plasticity ran, otherwise the substrate graph)
-- `ckpt-0100.awb-ckpt.json` — metadata manifest
+- `ckpt-0100.awb-ckpt.json` — metadata manifest, including the `graph_fingerprint` of the substrate the agent trained against
 
 ## Loading
 
@@ -40,9 +39,25 @@ restored = Agent.load_checkpoint("runs/exp1/ckpt-0100.awb-ckpt", brain)
 
 The loader reconstructs the dynamics model and learning rule from the metadata and restores the weight matrix.
 
-## The graph fingerprint concept
+## Fingerprint validation on load
 
-Every substrate build computes a SHA-256 fingerprint over the CSR data, indices, indptr and body IDs. Two substrates with different fingerprints are materially different graphs, even if their IDs match. Loading a checkpoint against an incompatible substrate must fail safely — this check is on the roadmap (see [IMPLEMENTATION_GAP](https://github.com/dhakalnirajan/axonweave/blob/main/docs/development/IMPLEMENTATION_GAP.md)).
+Before any weights are restored, the loader re-derives the loaded brain's graph fingerprint and compares it to the one recorded in the checkpoint manifest. A mismatch raises:
+
+```text
+AXW002: checkpoint graph fingerprint does not match the loaded substrate;
+refusing to restore against an incompatible connectome
+```
+
+Two substrates with different fingerprints are materially different graphs, even if their IDs match — so this check fails safely instead of producing a model whose weights point at the wrong neurons. The same fingerprint is also recorded in the substrate manifest at install time and re-verified by `SubstrateRegistry.load()` and `axonweave substrate verify`, so identity is enforced end to end: download checksums → build fingerprint → install manifest → checkpoint → load.
+
+## Relationship to framework serialization
+
+Checkpoints and framework serialization solve different halves of the problem:
+
+- **Checkpoints** (this page) capture experiment identity: which substrate, which policies, what was learned. They are backend-neutral and validate the substrate fingerprint.
+- **Framework serialization** (PyTorch `state_dict`, Keras `get_config()`, JAX array persistence — see [Configuration](configuration.md)) captures layer weights and structural options inside one framework's native format.
+
+A reproducible result records both: the checkpoint for scientific identity, the framework artifact for exact weight restoration.
 
 ## Reproducibility metadata
 
@@ -56,3 +71,4 @@ Checkpoints deliberately capture the "what was learned and why" context so exper
 
 - [Experiments](experiment.md) — the run loop that produces checkpoints.
 - [Learning & Plasticity](learning.md) — what the working copy contains.
+- [Configuration](configuration.md) — framework-level layer serialization.

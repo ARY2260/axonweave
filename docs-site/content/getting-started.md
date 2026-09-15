@@ -1,5 +1,7 @@
 # Getting Started
 
+From a clean environment to a working substrate: install the package, provision the MaleCNS connectome, load a brain and wire it into PyTorch or Keras.
+
 ## Requirements
 
 Python 3.10–3.14 is targeted. The core path requires NumPy, SciPy, PyArrow and the substrate cache dependencies. Framework integrations are optional extras.

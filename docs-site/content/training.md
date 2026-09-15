@@ -1,7 +1,5 @@
 # Training
 
-One-sentence purpose: explain the five distinct ways to "train the brain" — what changes in each mode, and what stays fixed.
-
 :::DOC-NOTE
 All training modes preserve substrate identity and graph topology. Structural plasticity (adding/removing edges) is not supported.
 :::

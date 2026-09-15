@@ -1,6 +1,5 @@
 # Errors & Diagnostics
 
-One-sentence purpose: document every AxonWeave error code, what each message means, how to catch and handle errors programmatically, and how to read Python tracebacks and code-hinting when things go wrong.
 
 ## Design principles
 

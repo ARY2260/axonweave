@@ -1,7 +1,5 @@
 # Tasks
 
-One-sentence purpose: document the high-level `brain.task(...)` interface that wires `encoder → brain → readout` into a trainable model.
-
 :::DOC-WARN
 The task API requires PyTorch (`pip install "axonweave[torch]"`) and is **experimental**. Keras and JAX task adapters are planned.
 :::

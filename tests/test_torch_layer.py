@@ -89,3 +89,48 @@ def test_batched_3d_input(small_graph):
     layer = ConnectomeLayer(small_graph)
     x = torch.randn(2, 3, small_graph.n_neurons)
     assert layer(x).shape == (2, 3, small_graph.n_neurons)
+
+
+# ---------------------------------------------------------------------------
+# API improvements: AXW010 consistency, repr, dtype, signal_policy guard
+# ---------------------------------------------------------------------------
+
+def test_bad_selection_raises_api_usage_error(small_graph):
+    """Selection type errors raise ApiUsageError (AXW010), not plain ValueError."""
+    from axonweave.errors import ApiUsageError
+
+    with pytest.raises(ApiUsageError, match="AXW010"):
+        ConnectomeLayer(small_graph, selection=[1, 2, 3])
+
+
+def test_signal_policy_warns_axw007(small_graph):
+    """Passing signal_policy warns (AXW007) instead of being silently ignored."""
+    with pytest.warns(UserWarning, match="AXW007"):
+        layer = ConnectomeLayer(small_graph, signal_policy=object())
+    assert layer.signal_policy is not None
+
+
+def test_extra_repr_reports_structure(small_graph):
+    layer = ConnectomeLayer(
+        small_graph, trainable_edges=True, learnable_gain=True, bias=True)
+    r = repr(layer)
+    assert "n_neurons=8" in r
+    assert "trainable_edges=True" in r
+    assert "learnable_gain=True" in r
+    assert "bias=True" in r
+
+
+def test_float64_input_preserves_dtype(small_graph):
+    """Double-precision inputs round-trip through the sparse path."""
+    layer = ConnectomeLayer(small_graph)
+    x = torch.randn(2, small_graph.n_neurons, dtype=torch.float64)
+    y = layer(x)
+    assert y.dtype == torch.float64
+    expected = x @ torch.tensor(small_graph.weights.toarray(), dtype=torch.float64)
+    torch.testing.assert_close(y, expected, rtol=1e-5, atol=1e-5)
+
+
+def test_graph_weights_exposed(small_graph):
+    """The backing CSR is reachable (used by ConnectomeBlock dynamics)."""
+    layer = ConnectomeLayer(small_graph)
+    assert layer.graph_weights is small_graph.weights

@@ -1,7 +1,5 @@
 # Readouts
 
-One-sentence purpose: document the `axonweave.readout` package — the task-facing interfaces that map neural activity onto classification, regression, token and action outputs.
-
 The pipeline's output side has a single unified namespace:
 
 ```text

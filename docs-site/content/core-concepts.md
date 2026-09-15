@@ -1,6 +1,6 @@
 # Core Concepts
 
-One-sentence purpose: establish the mental model — what the substrate is, what AxonWeave adds, and where your task fits.
+The mental model behind AxonWeave: what the biological substrate provides, what the framework adds on top, and where your task plugs in.
 
 ## The composition model
 

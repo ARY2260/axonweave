@@ -21,6 +21,12 @@ from axonweave.data.checksums import (
 )
 from axonweave.data.installer import _sha256, install_male_cns
 from axonweave.data.manifest import MALE_CNS
+from axonweave.data.checksums import (
+    GRAPH_FINGERPRINTS,
+    expected_graph_fingerprint,
+    verify_graph_fingerprint,
+)
+from axonweave.data.streaming_builder import DiskBackedGraphBuilder
 from axonweave.errors import DatasetIntegrityError, SchemaError, SubstrateNotInstalledError
 
 
@@ -249,6 +255,14 @@ def _install_with_fake_downloads(tmp_path, payload=b"fake-feather-bytes"):
         """Write a tiny real graph instead of parsing the fake feather bytes."""
         g = ConnectomeGraph(sparse.eye(3, dtype=np.float32, format="csr"), np.arange(3) * 7)
         g.save(output_path)
+        from axonweave.core.brain import substrate_fingerprint
+        import json as _json
+        output_path = Path(output_path)
+        output_path.with_suffix(".json").write_text(_json.dumps({
+            "graph_fingerprint": substrate_fingerprint(g),
+            "n_neurons": g.n_neurons,
+            "n_edges": g.n_edges,
+        }))
         return g
 
     with mock.patch("axonweave.data.installer.requests.Session.get", side_effect=fake_get), \
@@ -297,3 +311,154 @@ def test_sha256_of_known_bytes(tmp_path):
     p = tmp_path / "f.bin"
     p.write_bytes(b"axonweave")
     assert _sha256(p) == hashlib.sha256(b"axonweave").hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Disk-backed streaming builder (PLAN.md Phase 1/4)
+# ---------------------------------------------------------------------------
+
+def test_disk_backed_matches_in_memory_builder(tmp_path):
+    """Functional: the streaming builder must produce the identical graph and
+    fingerprint as the in-memory builder on the same input."""
+    from axonweave.core.brain import substrate_fingerprint
+
+    feather_path = _write_connectivity_feather(tmp_path / "conn.feather", seed=21)
+    out_mem = tmp_path / "mem" / "graph.npz"
+    out_disk = tmp_path / "disk" / "graph.npz"
+    g_mem = build_graph(feather_path, out_mem)
+    with DiskBackedGraphBuilder(feather_path, out_disk, batch_size=3) as b:
+        g_disk = b.build()
+
+    assert g_disk.n_neurons == g_mem.n_neurons
+    assert g_disk.n_edges == g_mem.n_edges
+    assert np.array_equal(g_disk.body_ids, g_mem.body_ids)
+    assert (g_disk.weights != g_mem.weights).nnz == 0
+    assert substrate_fingerprint(g_disk) == substrate_fingerprint(g_mem)
+
+
+# deduped CSR counts: duplicate (src,dst) pairs must be summed, not kept
+
+def test_disk_backed_deduplicates_and_sums_weights(tmp_path):
+    table = pa.table({
+        "body_pre": pa.array([1, 1, 2], pa.int64()),
+        "body_post": pa.array([2, 2, 1], pa.int64()),
+        "weight": pa.array([1.0, 2.5, 3.0], pa.float32()),
+    })
+    p = tmp_path / "dup.feather"
+    feather.write_feather(table, p)
+    with DiskBackedGraphBuilder(p, tmp_path / "g.npz", batch_size=2) as b:
+        g = b.build()
+    assert g.n_neurons == 2
+    assert g.n_edges == 2
+    assert g.weights[0, 1] == 3.5
+    meta = json.loads((tmp_path / "g.json").read_text())
+    assert meta["builder"] == "disk-backed"
+    assert len(meta["graph_fingerprint"]) == 64
+
+
+def test_disk_backed_empty_file(tmp_path):
+    table = pa.table({
+        "body_pre": pa.array([], pa.int64()),
+        "body_post": pa.array([], pa.int64()),
+        "weight": pa.array([], pa.float32()),
+    })
+    p = tmp_path / "empty.feather"
+    feather.write_feather(table, p)
+    with DiskBackedGraphBuilder(p, tmp_path / "g.npz") as b:
+        g = b.build()
+    assert g.n_neurons == 0
+    assert g.n_edges == 0
+
+
+def test_disk_backed_unresolvable_schema_raises(tmp_path):
+    table = pa.table({"a": pa.array([1], pa.int64())})
+    p = tmp_path / "bad.feather"
+    feather.write_feather(table, p)
+    with pytest.raises(SchemaError, match="AXW003"):
+        with DiskBackedGraphBuilder(p, tmp_path / "g.npz") as b:
+            b.build()
+
+
+def test_disk_backed_cleanup_removes_scratch(tmp_path):
+    feather_path = _write_connectivity_feather(tmp_path / "conn.feather")
+    b = DiskBackedGraphBuilder(feather_path, tmp_path / "g.npz", tmp_dir=tmp_path / "scratch")
+    assert not b._owns_tmp
+    b.build()
+    b.cleanup()
+    # A caller-supplied scratch dir is emptied but not deleted...
+    assert (tmp_path / "scratch").exists()
+    assert list((tmp_path / "scratch").iterdir()) == []
+    # ...while the built artifact survives.
+    assert (tmp_path / "g.npz").exists()
+
+
+def test_disk_backed_cleanup_removes_owned_tmpdir(tmp_path):
+    feather_path = _write_connectivity_feather(tmp_path / "conn.feather")
+    with DiskBackedGraphBuilder(feather_path, tmp_path / "g.npz") as b:
+        assert b._owns_tmp
+        scratch = b._tmp_dir
+        assert scratch.exists()
+        b.build()
+    assert not scratch.exists()
+    assert (tmp_path / "g.npz").exists()
+
+
+# ---------------------------------------------------------------------------
+# Declared graph fingerprint validation
+# ---------------------------------------------------------------------------
+
+def test_verify_graph_fingerprint_skips_undeclared():
+    # male-cns:v1.0 has no measured upstream fingerprint yet — must not raise.
+    assert expected_graph_fingerprint("male-cns:v1.0") is None
+    verify_graph_fingerprint("deadbeef", "male-cns:v1.0")
+
+
+def test_verify_graph_fingerprint_rejects_mismatch():
+    GRAPH_FINGERPRINTS["test-substrate"] = {"graph_fingerprint": "a" * 64}
+    try:
+        with pytest.raises(DatasetIntegrityError, match="AXW002"):
+            verify_graph_fingerprint("b" * 64, "test-substrate")
+        verify_graph_fingerprint("a" * 64, "test-substrate")  # match ok
+    finally:
+        del GRAPH_FINGERPRINTS["test-substrate"]
+
+
+def test_installer_records_graph_fingerprint_in_manifest(tmp_path):
+    from axonweave.core.brain import substrate_fingerprint
+
+    brain, _ = _install_with_fake_downloads(tmp_path)
+    manifest = json.loads(
+        (tmp_path / "substrates" / "male-cns-v1.0" / "manifest.json").read_text()
+    )
+    graph_meta = manifest["graph"]
+    assert graph_meta["fingerprint"] == substrate_fingerprint(brain.graph)
+    assert len(graph_meta["fingerprint"]) == 64
+    assert graph_meta["builder"] == "in-memory"
+    assert brain.n_neurons == 3
+
+
+def test_registry_load_rejects_fingerprint_mismatch(tmp_path):
+    reg = _fake_installed_registry(tmp_path)
+    manifest_path = reg.path("male-cns:v1.0") / "manifest.json"
+    meta = json.loads(manifest_path.read_text())
+    meta["graph"] = {"n_neurons": 4, "n_edges": 4, "fingerprint": "f" * 64}
+    manifest_path.write_text(json.dumps(meta))
+    with pytest.raises(DatasetIntegrityError, match="AXW002"):
+        reg.load("male-cns:v1.0")
+
+
+def test_registry_load_accepts_matching_fingerprint(tmp_path):
+    from axonweave.core.brain import substrate_fingerprint
+
+    reg = _fake_installed_registry(tmp_path)
+    brain = reg.load("male-cns:v1.0")
+    fp = substrate_fingerprint(brain.graph)
+    manifest_path = reg.path("male-cns:v1.0") / "manifest.json"
+    meta = json.loads(manifest_path.read_text())
+    meta["graph"] = {
+        "n_neurons": brain.n_neurons,
+        "n_edges": brain.graph.n_edges,
+        "fingerprint": fp,
+    }
+    manifest_path.write_text(json.dumps(meta))
+    assert reg.load("male-cns:v1.0").n_neurons == brain.n_neurons

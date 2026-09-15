@@ -73,3 +73,50 @@ def test_keras_model_integration(small_graph):
     ])
     y = model.predict(tf.ones((2, small_graph.n_neurons)), verbose=0)
     assert y.shape == (2, small_graph.n_neurons)
+
+
+# ---------------------------------------------------------------------------
+# API improvements: get_config, AXW010 consistency, signal_policy guard
+# ---------------------------------------------------------------------------
+
+def test_get_config_roundtrip(small_graph):
+    """Keras serialization: get_config carries the structural options."""
+    layer = ConnectomeLayer(
+        small_graph, trainable_edges=True, learnable_gain=True, use_bias=True)
+    cfg = layer.get_config()
+    assert cfg["trainable_edges"] is True
+    assert cfg["learnable_gain"] is True
+    assert cfg["use_bias"] is True
+    assert cfg["n_neurons"] == small_graph.n_neurons
+
+
+def test_get_config_from_sequential_model(small_graph):
+    """Integration: model.get_config() works with the layer embedded."""
+    layer = ConnectomeLayer(small_graph, use_bias=True)
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(small_graph.n_neurons,)),
+        layer,
+    ])
+    # Must not raise; structural options survive the round trip.
+    cfg = model.get_config()
+    layer_cfg = cfg["layers"][1]["config"]
+    assert layer_cfg["use_bias"] is True
+
+
+def test_bad_selection_raises_api_usage_error(small_graph):
+    from axonweave.errors import ApiUsageError
+
+    with pytest.raises(ApiUsageError, match="AXW010"):
+        ConnectomeLayer(small_graph, selection=[1, 2, 3])
+
+
+def test_signal_policy_warns_axw007(small_graph):
+    with pytest.warns(UserWarning, match="AXW007"):
+        layer = ConnectomeLayer(small_graph, signal_policy=object())
+    assert layer.signal_policy is not None
+
+
+def test_graph_weights_exposed(small_graph):
+    """The backing CSR is reachable (used by KerasConnectomeBlock dynamics)."""
+    layer = ConnectomeLayer(small_graph)
+    assert layer.graph_weights is small_graph.weights
