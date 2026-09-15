@@ -8,7 +8,7 @@ import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-toml';
 import 'prismjs/components/prism-powershell';
-import { Menu, Moon, Sun, Search, X, ChevronRight, ThumbsUp, ThumbsDown, ChevronDown } from 'lucide-react';
+import { FiMenu, FiMoon, FiSun, FiSearch, FiX, FiChevronRight, FiThumbsUp, FiThumbsDown, FiChevronDown } from 'react-icons/fi';
 import './style.css';
 
 import indexMd from '../content/index.md?raw';
@@ -52,6 +52,8 @@ import errorsMd from '../content/errors.md?raw';
 import readoutsMd from '../content/readouts.md?raw';
 import rustCoreMd from '../content/rust-core.md?raw';
 import runtimeMd from '../content/runtime.md?raw';
+import playgroundMd from '../content/playground.md?raw';
+import Playground from './Playground';
 
 type Page = { slug: string; label: string; source: string; section: string };
 const pages: Page[] = [
@@ -94,9 +96,9 @@ const pages: Page[] = [
  {slug:'license',label:'License',source:licenseMd,section:'Project'},
  {slug:'code-of-conduct',label:'Code of Conduct',source:codeOfConductMd,section:'Project'},
  {slug:'security',label:'Security Policy',source:securityMd,section:'Project'},
- {slug:'errors',label:'Errors & Diagnostics',source:errorsMd,section:'Reference'},
- {slug:'troubleshooting',label:'Troubleshooting',source:troubleshootingMd,section:'Project'},
-];
+ {slug:'errors',label:'Errors & Diagnostics',source:errorsMd,section:'Reference'}, {slug:'troubleshooting',label:'Troubleshooting',source:troubleshootingMd,section:'Project'},
+ {slug:'playground',label:'Playground',source:playgroundMd,section:'Tools'},
+ ];
 
 marked.setOptions({gfm:true, breaks:false});
 // Admonitions: :::DOC-NOTE / :::DOC-WARN / :::DOC-TIP become accent-bar
@@ -161,7 +163,7 @@ function CodeEnhancer({slug}:{slug:string}){
      // Horizontal-scroll hint for blocks wider than their container.
      const wrap=document.createElement('div'); wrap.className='pre-wrap'+(hasGutter?' has-gutter':'')+(hasChip?' has-chip':'');
      pre.replaceWith(wrap); wrap.appendChild(pre);
-     const hint=document.createElement('span'); hint.className='scroll-hint'; hint.setAttribute('aria-hidden','true'); hint.textContent='scroll →';
+     const hint=document.createElement('span'); hint.className='scroll-hint'; hint.setAttribute('aria-hidden','true'); hint.textContent='scroll'; hint.classList.add('scroll-arrow');
      wrap.appendChild(hint);
      if(hasGutter){
        const rail=document.createElement('span');
@@ -240,7 +242,7 @@ const page=pages.find(p=>p.slug===slug);
  const navigate=(s:string)=>{history.pushState({},'',hrefFor(s));setSlug(s);setMobile(false);jumpToTop()};
  return <><Helmet><meta name="description" content={page?`AxonWeave ${page.label} documentation`: 'AxonWeave documentation'}/><meta property="og:title" content={page?`${page.label} · AxonWeave`:'AxonWeave Documentation'}/><meta property="og:description" content={page?`AxonWeave ${page.label} documentation`:'AxonWeave documentation'}/><meta name="twitter:card" content="summary"/></Helmet><div className="app">
    <header className="topbar">
-     <button className="icon-button mobile-menu" onClick={()=>setMobile(!mobile)} aria-label="Open navigation"><Menu size={20}/></button>
+     <button className="icon-button mobile-menu" onClick={()=>setMobile(!mobile)} aria-label="Open navigation"><FiMenu size={20}/></button>
      <a className="brand" href="/" onClick={e=>{e.preventDefault();navigate('index')}}><img src={`${BASE}logo.svg`} alt="AxonWeave"/><span>AxonWeave</span></a>
      <nav className="topnav">
        <a href={hrefFor('core-concepts')} onClick={e=>{e.preventDefault();navigate('core-concepts')}}>Learn</a>
@@ -248,19 +250,20 @@ const page=pages.find(p=>p.slug===slug);
        <a href={hrefFor('tasks')} onClick={e=>{e.preventDefault();navigate('tasks')}}>Tutorials</a>
        <a href="https://github.com/dhakalnirajan/axonweave" target="_blank" rel="noreferrer">GitHub</a>
      </nav>
-     <button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="Search documentation (Shift+/)"><Search size={15}/><span>Search documentation...</span><kbd>Shift+/</kbd></button>
+     <button className="search-trigger" onClick={()=>setSearchOpen(true)} aria-label="Search documentation (Shift+/)"><FiSearch size={15}/><span>Search documentation...</span><kbd>Shift+/</kbd></button>
      <div className="top-actions">
-       <div className="learn-menu"><button className="learn-trigger version-trigger">{version} <span>▾</span></button><div className="learn-dropdown version-dropdown">{VERSIONS.map(v=><button key={v} className={v===version?'version-item active':'version-item'} onClick={()=>setVersion(v)}>{v}</button>)}</div></div>
-       <button className="icon-button" onClick={()=>setDark(!dark)} aria-label="Toggle theme">{dark?<Sun size={19}/>:<Moon size={19}/>}</button>
+       <div className="learn-menu"><button className="learn-trigger version-trigger">{version} <FiChevronDown size={12}/></button><div className="learn-dropdown version-dropdown">{VERSIONS.map(v=><button key={v} className={v===version?'version-item active':'version-item'} onClick={()=>setVersion(v)}>{v}</button>)}</div></div>
+       <button className="icon-button" onClick={()=>setDark(!dark)} aria-label="Toggle theme">{dark?<FiSun size={19}/>:<FiMoon size={19}/>}</button>
      </div>
    </header>
    <div className="shell" style={{'--sidebar-w':`${sidebarWidth}px`} as React.CSSProperties}>
+    {mobile&&<div className="sidebar-overlay visible" onClick={()=>setMobile(false)} aria-hidden="true"/>}
     <aside className={`sidebar ${mobile?'open':''}`}>
-      <div className="sidebar-header">Documentation <button className="icon-button close-mobile" onClick={()=>setMobile(false)}><X size={18}/></button></div>
+      <div className="sidebar-header">Documentation <button className="icon-button close-mobile" onClick={()=>setMobile(false)}><FiX size={18}/></button></div>
       {sections.map(section=><div className="nav-section" key={section}><div className="nav-label">{section}</div>{pages.filter(p=>p.section===section).map(p=><a key={p.slug} className={slug===p.slug?'active':''} href={hrefFor(p.slug)} onClick={e=>{e.preventDefault();navigate(p.slug)}}>{p.label}</a>)}</div>)}
     </aside>
     <main id="main" className="content">
-      {page?<><nav className="breadcrumbs" aria-label="Breadcrumb"><a className="crumb-link" href={hrefFor('index')} onClick={e=>{e.preventDefault();navigate('index')}}>Docs</a><span>/</span><span className="crumb-here">{page.label}</span></nav><div className="title-row"><h1 style={{display:'none'}}/><div className="title-row-spacer"/><FeedbackWidget slug={slug}/></div><article dangerouslySetInnerHTML={{__html:html}}/>{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
+      {page?<><nav className="breadcrumbs" aria-label="Breadcrumb"><a className="crumb-link" href={hrefFor('index')} onClick={e=>{e.preventDefault();navigate('index')}}>Docs</a><span>/</span><span className="crumb-here">{page.label}</span></nav><div className="title-row"><h1 style={{display:'none'}}/><div className="title-row-spacer"/><FeedbackWidget slug={slug}/></div>{slug==='playground'?<Playground dark={dark}/>:<article dangerouslySetInnerHTML={{__html:html}}/>}{slug==='index'&&<div className="hero-cta"><button className="primary" onClick={()=>navigate('getting-started')}>Install AxonWeave</button></div>}<CodeEnhancer slug={slug}/><PageNav slug={slug} navigate={navigate}/></>:<NotFound navigate={navigate}/>}
     </main>
     {page&&<aside className="toc"><div className="toc-title">On this page</div><Toc slug={slug}/></aside>}
    </div>
@@ -281,8 +284,8 @@ function FeedbackWidget({slug}:{slug:string}){
   {vote
    ? <span className="feedback-thanks">Thanks for your feedback.</span>
    : <><span className="feedback-label">Was this helpful?</span>
-      <button className="feedback-button" onClick={()=>cast('up')} aria-label="Yes, this page was helpful"><ThumbsUp size={15}/></button>
-      <button className="feedback-button" onClick={()=>cast('down')} aria-label="No, this page was not helpful"><ThumbsDown size={15}/></button></>}
+      <button className="feedback-button" onClick={()=>cast('up')} aria-label="Yes, this page was helpful"><FiThumbsUp size={15}/></button>
+      <button className="feedback-button" onClick={()=>cast('down')} aria-label="No, this page was not helpful"><FiThumbsDown size={15}/></button></>}
  </div>;
 }
 
@@ -302,7 +305,7 @@ function Toc({slug}:{slug:string}){
    out.forEach(it=>{const el=document.getElementById(it.id);if(el)obs.observe(el)});
    return()=>obs.disconnect();
  },[slug]);
- return <nav>{items.map(x=><a className={(x.level===3?'sub ':'')+(active===x.id?'active':'')} href={`#${x.id}`} key={x.id}><ChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
+ return <nav>{items.map(x=><a className={(x.level===3?'sub ':'')+(active===x.id?'active':'')} href={`#${x.id}`} key={x.id}><FiChevronRight size={11} className="toc-caret"/>{x.text}</a>)}</nav>
 }
 function NotFound({navigate}:{navigate:(s:string)=>void}){return <div className="not-found"><p className="eyebrow">404</p><h1>Page not found</h1><p>The requested documentation page does not exist.</p><button className="primary" onClick={()=>navigate('index')}>Return to documentation</button></div>}
 function PageNav({slug,navigate}:{slug:string,navigate:(s:string)=>void}){
@@ -313,11 +316,11 @@ function PageNav({slug,navigate}:{slug:string,navigate:(s:string)=>void}){
  const prev=idx>0?pages[idx-1]:null;
  const next=idx<order.length-1?pages[idx+1]:null;
  return <div className="page-nav">
-  {prev? <button className="page-nav-cell prev" onClick={()=>navigate(prev.slug)}><span className="page-nav-dir">← Previous</span><span className="page-nav-label">{prev.label}</span></button> : <span className="page-nav-cell"/>}
-  {next? <button className="page-nav-cell next" onClick={()=>navigate(next.slug)}><span className="page-nav-dir">Next →</span><span className="page-nav-label">{next.label}</span></button> : <span className="page-nav-cell"/>}
+  {prev? <button className="page-nav-cell prev" onClick={()=>navigate(prev.slug)}><span className="page-nav-dir"><FiChevronRight size={12} style={{transform:'rotate(180deg)'}}/> Previous</span><span className="page-nav-label">{prev.label}</span></button> : <span className="page-nav-cell"/>}
+  {next? <button className="page-nav-cell next" onClick={()=>navigate(next.slug)}><span className="page-nav-dir">Next <FiChevronRight size={12}/></span><span className="page-nav-label">{next.label}</span></button> : <span className="page-nav-cell"/>}
  </div>;
 }
-function SearchDialog({pages,onClose,onGo}:{pages:Page[],onClose:()=>void,onGo:(s:string)=>void}){const [q,setQ]=useState('');const results=pages.filter(p=>(p.label+' '+p.source).toLowerCase().includes(q.toLowerCase())).slice(0,8);return <div className="overlay" onMouseDown={onClose}><div className="search-dialog" onMouseDown={e=>e.stopPropagation()}><div className="search-head"><Search size={18}/><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="Search documentation"/><button className="icon-button" onClick={onClose}><X size={18}/></button></div>{results.map(r=><button className="search-result" key={r.slug} onClick={()=>{onGo(r.slug);onClose()}}><strong>{r.label}</strong><span>{r.section}</span></button>)}</div></div>}
-function CookieConsent(){const [show,setShow]=useState(localStorage.getItem('axonweave-cookie')!=='accepted');if(!show)return null;return <div className="cookie"><div><strong>Privacy choices</strong><p>This documentation does not require analytics cookies. Optional analytics, if enabled by a deployment, should be disclosed in the Privacy Policy.</p></div><button className="primary" onClick={()=>{localStorage.setItem('axonweave-cookie','accepted');setShow(false)}}>Accept</button></div>}
+function SearchDialog({pages,onClose,onGo}:{pages:Page[],onClose:()=>void,onGo:(s:string)=>void}){const [q,setQ]=useState('');const results=pages.filter(p=>(p.label+' '+p.source).toLowerCase().includes(q.toLowerCase())).slice(0,8);return <div className="overlay" onMouseDown={onClose}><div className="search-dialog" onMouseDown={e=>e.stopPropagation()}><div className="search-head"><FiSearch size={18}/><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder="Search documentation"/><button className="icon-button" onClick={onClose}><FiX size={18}/></button></div>{results.map(r=><button className="search-result" key={r.slug} onClick={()=>{onGo(r.slug);onClose()}}><strong>{r.label}</strong><span>{r.section}</span></button>)}</div></div>}
+function CookieConsent(){const [show,setShow]=useState(false);const [prefs,setPrefs]=useState(false);useEffect(()=>{const stored=localStorage.getItem('axonweave-cookie-consent');if(!stored)setShow(true)},[]);const consent=(value:string)=>{localStorage.setItem('axonweave-cookie-consent',value);setShow(false);setPrefs(false)};if(!show)return null;return <div className="cookie" role="dialog" aria-label="Cookie preferences">{!prefs?<><div><strong>Privacy & cookies</strong><p>This site uses essential cookies only. Optional analytics, if enabled, will be disclosed in the Privacy Policy. You may accept all or reject non-essential cookies.</p></div><div className="cookie-actions"><button className="primary" onClick={()=>consent('all')}>Accept all</button><button className="secondary" onClick={()=>consent('essential')}>Reject all</button><button className="ghost" onClick={()=>setPrefs(true)}>Manage preferences</button></div></>:<><div><strong>Manage preferences</strong><label className="cookie-pref"><input type="checkbox" disabled checked /> Essential (always on)</label><label className="cookie-pref"><input type="checkbox" /> Analytics (coming soon)</label></div><div className="cookie-actions"><button className="primary" onClick={()=>consent('all')}>Save and accept</button><button className="ghost" onClick={()=>setPrefs(false)}>Back</button></div></>}</div>}
 
 createRoot(document.getElementById('root')!).render(<HelmetProvider><App/></HelmetProvider>);
