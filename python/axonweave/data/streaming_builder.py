@@ -96,6 +96,8 @@ class DiskBackedGraphBuilder:
         )
 
         offset = 0
+        since_flush = 0
+        flush_every = max(self.batch_size * 20, 1_000_000)
         scanner = dataset.scanner(columns=cols, batch_size=self.batch_size)
         for batch in scanner.to_batches():
             src = np.asarray(batch.column(0), dtype=np.int64)
@@ -110,6 +112,18 @@ class DiskBackedGraphBuilder:
             )
             edges_wgt[offset:offset + n] = wgt
             offset += n
+            since_flush += n
+
+            # Flush periodically so dirty memmap pages get written back
+            # incrementally instead of piling up in RAM for the whole scan
+            # (this matters on slow/removable destination media and large
+            # edge counts, e.g. tens to hundreds of millions of rows).
+            if since_flush >= flush_every:
+                edges_row.flush()
+                edges_col.flush()
+                edges_wgt.flush()
+                since_flush = 0
+                print(f"  streamed {offset}/{n_edges} edges", flush=True)
 
         edges_row.flush()
         edges_col.flush()

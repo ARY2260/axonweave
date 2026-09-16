@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
-import hashlib
 import numpy as np
 import pyarrow.dataset as ds
 from scipy import sparse
+from .. import native as _native
 from ..core.graph import ConnectomeGraph
 
 ALIASES = {
@@ -70,7 +70,7 @@ def build_graph(feather_path, output_path, batch_size=100_000):
     graph = ConnectomeGraph(matrix, body_ids)
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     graph.save(output_path)
-    fingerprint = hashlib.sha256(matrix.data.tobytes() + matrix.indices.tobytes() + matrix.indptr.tobytes() + body_ids.tobytes()).hexdigest()
+    fingerprint = _native.csr_fingerprint(matrix, body_ids)
     Path(output_path).with_suffix('.json').write_text(json.dumps({"graph_fingerprint": fingerprint, "n_neurons": graph.n_neurons, "n_edges": graph.n_edges}, indent=2), encoding="utf-8")
     return graph
 

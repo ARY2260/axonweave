@@ -60,7 +60,7 @@ def verify_graph_fingerprint(observed_fingerprint: str, substrate_id: str) -> No
 UPSTREAM_CHECKSUMS: dict[str, dict[str, dict[str, str | None]]] = {
     "male-cns:v1.0": {
         "connectivity": {
-            "md5_base64": "8w6dzKJc/QIb8xuz2XVZng==",
+            "md5_base64": "8w6dzKJc/QIb8eez2XVZng==",
             "sha256": None,
         },
         "annotations": {
